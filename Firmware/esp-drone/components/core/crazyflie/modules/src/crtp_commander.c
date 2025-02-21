@@ -33,9 +33,36 @@
 #include "crtp.h"
 
 
+//below added by dks
+#include "ledseq.h"
+#include "system.h"
+#include "platform.h"
+#include "debug_cf.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
+
+#define APP_DISCONNECT_TIMEOUT_MS 700  // 1 seconds timeout
+
 static bool isInit;
 
 static void commanderCrtpCB(CRTPPacket* pk);
+
+static TickType_t lastPacketTick = 0;
+
+static void checkAppConnectionTask(void *param) {
+  while (1) {
+      TickType_t now = xTaskGetTickCount();
+
+      // Check if no packet received within timeout
+      if ((now - lastPacketTick) > pdMS_TO_TICKS(APP_DISCONNECT_TIMEOUT_MS)) {
+          printf("[WARNING] App Disconnected! Turning off LED.\n");
+          ledSet(1, 0);  //  Turn OFF LED if no recent packets
+      }
+
+      vTaskDelay(pdMS_TO_TICKS(500));  // Check every 500ms
+  }
+}
 
 void crtpCommanderInit(void)
 {
@@ -47,6 +74,9 @@ void crtpCommanderInit(void)
   crtpRegisterPortCB(CRTP_PORT_SETPOINT, commanderCrtpCB);
   crtpRegisterPortCB(CRTP_PORT_SETPOINT_GENERIC, commanderCrtpCB);
   isInit = true;
+
+  // Start the connection monitoring task
+  xTaskCreate(checkAppConnectionTask, "CheckAppConnection", 1024, NULL, 2, NULL);
 }
 
 enum crtpSetpointGenericChannel {
@@ -106,25 +136,52 @@ const static metaCommandDecoder_t metaCommandDecoders[] = {
   [metaNotifySetpointsStop] = notifySetpointsStopDecoder,
 };
 
+
 /* Decoder switch */
 static void commanderCrtpCB(CRTPPacket* pk)
 {
+  lastPacketTick = xTaskGetTickCount(); 
   static setpoint_t setpoint;
 
+
+  printf("Received CRTP Packet: Port=%d, Channel=%d, Data=", pk->port, pk->channel);
+
+  lastPacketTick = xTaskGetTickCount(); //  Update timestamp on each received packet
+
+
   if(pk->port == CRTP_PORT_SETPOINT && pk->channel == 0) {
+    printf("L\n");
+    ledSet(1,1);
     crtpCommanderRpytDecodeSetpoint(&setpoint, pk);
     commanderSetSetpoint(&setpoint, COMMANDER_PRIORITY_CRTP);
   } else if (pk->port == CRTP_PORT_SETPOINT_GENERIC) {
+    printf("commands Received from CRTP_PORT_GENERIC \n");
     switch (pk->channel) {
     case SET_SETPOINT_CHANNEL:
+      printf("SET_SETPOINT_CHANNE \n");
       crtpCommanderGenericDecodeSetpoint(&setpoint, pk);
       commanderSetSetpoint(&setpoint, COMMANDER_PRIORITY_CRTP);
       break;
     case META_COMMAND_CHANNEL: {
+        printf("META_COMMAND_CHANNEL \n");
         uint8_t metaCmd = pk->data[0];
-        if (metaCmd < nMetaCommands && (metaCommandDecoders[metaCmd] != NULL)) {
+        printf("metaCmd is %u \n", metaCmd);
+        if (metaCmd == 0x11) { // Custom LED command
+          if (pk->data[1] == 1) {
+            printf("led_on_command_sent \n");
+            ledSet(1, 1);  // Turn LED ON 
+          } else if(pk->data[1] == 0) {
+            printf("led_off_command_sent \n");
+            ledSet(1, 0);  // Turn LED OFF 1 = led number 0 = led state
+          } 
+        }
+        else if (metaCmd < nMetaCommands && (metaCommandDecoders[metaCmd] != NULL)) {
           metaCommandDecoders[metaCmd](pk->data + 1, pk->size - 1);
         }
+        else {
+          printf("Unknown metaCmd: %02X\n", metaCmd);
+      }
+
       }
       break;
     default:
