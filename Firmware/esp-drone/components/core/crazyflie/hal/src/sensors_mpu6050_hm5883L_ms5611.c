@@ -70,7 +70,7 @@
  * Enable 250Hz digital LPF mode. However does not work with
  * multiple slave reading through MPU9250 (MAG and BARO), only single for some reason.
  */
-//#define SENSORS_mpu6050_DLPF_256HZ
+//#define SENSORS_mpu6050_DLPF_256HZ  //dks
 
 //#define GYRO_ADD_RAW_AND_VARIANCE_LOG_VALUES
 
@@ -80,7 +80,7 @@
  * Enable sensors on board 
  */
 // #define SENSORS_ENABLE_MAG_HM5883L
-// #define SENSORS_ENABLE_PRESSURE_MS5611
+#define SENSORS_ENABLE_PRESSURE_MS5611
 //#define SENSORS_ENABLE_RANGE_VL53L0X
 #define SENSORS_ENABLE_RANGE_VL53L1X
 #define SENSORS_ENABLE_FLOW_PMW3901
@@ -305,18 +305,21 @@ void sensorsMpu6050Hmc5883lMs5611WaitDataReady(void)
 
 void processBarometerMeasurements(const uint8_t *buffer)
 {
-    //TODO: replace it to MS5611
-    DEBUG_PRINTW("processBarometerMeasurements NEED TODO");
-//   static uint32_t rawPressure = 0;
-//   static int16_t rawTemp = 0;
+    void processBarometerMeasurements(const uint8_t *buffer)
+{
+    static float pressure, temperature, asl;  // Altitude above sea level
 
-// Check if there is a new pressure update
+    // Read MS5611 data
+    ms5611GetData(&pressure, &temperature, &asl);
 
-// Check if there is a new temp update
+    // Store data in the barometer sensor structure
+    sensorData.baro.pressure = pressure;
+    sensorData.baro.temperature = temperature;
+    sensorData.baro.asl = asl;
 
-//   sensorData.baro.pressure = (float) rawPressure / LPS25H_LSB_PER_MBAR;
-//   sensorData.baro.temperature = LPS25H_TEMP_OFFSET + ((float) rawTemp / LPS25H_LSB_PER_CELSIUS);
-//   sensorData.baro.asl = lps25hPressureToAltitude(&sensorData.baro.pressure);
+    DEBUG_PRINTW("Barometer Data: Pressure = %.2f mbar, Temperature = %.2f °C, Altitude = %.2f m", pressure, temperature, asl);
+}
+
 }
 
 void processMagnetometerMeasurements(const uint8_t *buffer)
@@ -423,6 +426,7 @@ static void sensorsDeviceInit(void)
 
     if (mpu6050TestConnection() == true) {
         DEBUG_PRINTI("MPU6050 I2C connection [OK].\n");
+
     } else {
         DEBUG_PRINTE("MPU6050 I2C connection [FAIL].\n");
         // Please check your hardware !
@@ -492,12 +496,18 @@ static void sensorsDeviceInit(void)
 
 #endif
 #ifdef SENSORS_ENABLE_PRESSURE_MS5611
+    printf("before ms5611Init \n");
     ms5611Init(I2C0_DEV);
+    printf("after ms5611Init \n");
+    //printf("isBarometerPresent = ",isBarometerPresent);
+    printf("\n");
 
-    if (false) {
+    //if (false) {
+    if (true) {
         isBarometerPresent = true;
         DEBUG_PRINTI("MS5611 I2C connection [OK].\n");
     } else {
+        printf("inside else \n");
         //TODO: Should sensor test fail hard if no connection
         DEBUG_PRINTW("MS5611 I2C connection [FAIL].\n");
     }
@@ -560,6 +570,7 @@ static void sensorsDeviceInit(void)
 
 static void sensorsSetupSlaveRead(void)
 {
+    mpu6050SetI2CMasterModeEnabled(true);
     // Now begin to set up the slaves
 #ifdef SENSORS_MPU6050_DLPF_256HZ
     // As noted in registersheet 4.4: "Data should be sampled at or above sample rate;
@@ -595,6 +606,7 @@ static void sensorsSetupSlaveRead(void)
 #ifdef SENSORS_ENABLE_PRESSURE_MS5611
 
     if (isBarometerPresent) {
+        //mpu6050SetSlave4MasterDelay(9); // read slaves at 100Hz = (500Hz / (1 + 4)) //dks
         // Configure the LPS25H as a slave and enable read
         // Setting up two reads works for LPS25H fifo avg filter as well as the
         // auto inc wraps back to LPS25H_PRESS_OUT_L after LPS25H_PRESS_OUT_H is read.
