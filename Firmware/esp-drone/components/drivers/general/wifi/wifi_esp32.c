@@ -28,6 +28,7 @@ static struct sockaddr_in6 source_addr; // Large enough for both IPv4 or IPv6
 static char WIFI_SSID[32] = "ESP-DRONE";
 static char WIFI_PWD[64] = "12345678" ;
 static uint8_t WIFI_CH = 1;
+static bool isAltHoldEnabled = false; // Track the state of AltHold
 #define MAX_STA_CONN (3)
 
 #ifndef MAC2STR
@@ -151,6 +152,22 @@ static void udp_server_rx_task(void *pvParameters)
         } else {
             //copy part of the UDP packet
             rx_buffer[len] = 0;// Null-terminate whatever we received and treat like a string...
+            printf("Received packet of size: %d bytes\n", len);
+            printf("Received packet data: ");
+            for (int i = 0; i < len; i++) {
+                printf(" %02X", rx_buffer[i]);
+            }
+            printf("\n");
+            if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13){
+                if (!isAltHoldEnabled){
+                    ledSet(1,1);
+                    isAltHoldEnabled = true;
+                }
+                else {
+                    ledSet(1,0);
+                    isAltHoldEnabled = false;
+                }
+            }
             memcpy(inPacket.data, rx_buffer, len);
             cksum = inPacket.data[len - 1];
             //remove cksum, do not belong to CRTP
