@@ -28,6 +28,16 @@
 
 #include "stabilizer_types.h"
 
+//dks
+#include "sensors_mpu6050_hm5883L_ms5611.h"
+
+float asl;
+extern float targetAltitude;
+float currentAltitude;
+
+float computeAltitudeHoldPID(float currentAltitude);
+
+
 // A position controller calculate the thrust, roll, pitch to approach
 // a 3D position setpoint
 void positionControllerInit();

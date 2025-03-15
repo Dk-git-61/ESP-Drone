@@ -73,6 +73,8 @@
 //#include "peer_localization.h"
 #include "cfassert.h"
 
+#include "ms5611.h"
+
 #ifndef START_DISARMED
 #define ARM_INIT true
 #else
@@ -85,6 +87,9 @@ static bool canFly;
 static bool armed = ARM_INIT;
 static bool forceArm;
 static bool isInit;
+// for taking press and temp data on ground while ready to takeoff
+bool ground_press_temp_data = FALSE;
+
 
 STATIC_MEM_TASK_ALLOC(systemTask, SYSTEM_TASK_STACKSIZE);
 
@@ -265,6 +270,7 @@ void systemTask(void *arg)
     }
   }
   DEBUG_PRINT("Free heap: %"PRIu32" bytes\n", xPortGetFreeHeapSize());
+  // to take ground pressure and temperature data
 
   workerLoop();
 

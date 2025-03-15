@@ -65,6 +65,11 @@
 #define CONST_PF 0.1902630958 //(1/5.25588f) Pressure factor
 #define CONST_PF2 44330.0f
 
+extern float A_ground;
+extern float  relaAlt;
+
+static float pressure_m, temperature_m, asl_m;
+
 
 bool ms5611Init(I2C_Dev *i2cPort);
 bool ms5611SelfTest(void);
@@ -84,4 +89,6 @@ int32_t ms5611GetConversion(uint8_t command);
 
 void ms5611GetData(float *pressure, float *temperature, float *asl);
 float ms5611PressureToAltitude(float *pressure);
+void setGroundReference(float pressure, float temperature, float asl);
+
 #endif // MS5611_H

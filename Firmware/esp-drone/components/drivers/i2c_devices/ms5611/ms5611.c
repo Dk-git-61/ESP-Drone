@@ -41,6 +41,13 @@
 #define FIX_TEMP 25         // Fixed Temperature. ASL is a function of pressure and temperature, but as the temperature changes so much (blow a little towards the flie and watch it drop 5 degrees) it corrupts the ASL estimates.
 // TLDR: Adjusting for temp changes does more harm than good.
 
+// Global variable to store ground pressure added by dks
+static float P_ground = 0.0f;  // Pressure at takeoff
+static float T_ground = 25.0f; // Temperature at takeoff (initialize, update with real sensor value)
+float altm_ofs = 0.2500;
+//static float A_ground = 0.0;
+float A_ground = 0.0f; //  Define the variable properly
+
 typedef struct {
     uint16_t psens;
     uint16_t off;
@@ -247,6 +254,14 @@ int32_t ms5611RawTemperature(uint8_t osr)
     }
 }
 
+// added by dks
+void setGroundReference(float pressure, float temperature, float asl) {
+    P_ground = pressure;
+    T_ground = temperature;
+    A_ground = ms5611PressureToAltitude(&pressure) - altm_ofs;
+    printf("Ground Barometer Data: Pressure = %.4f mbar, Temperature = %.4f °C,Altitude = %.4f meter \n", P_ground, T_ground,A_ground);
+}
+
 // see page 11 of the datasheet
 void ms5611StartConversion(uint8_t command)
 {
@@ -358,11 +373,24 @@ void ms5611GetData(float *pressure, float *temperature, float *asl)
 }
 
 //TODO: pretty expensive function. Rather smooth the pressure estimates and only call this when needed
+/**
+ * Converts pressure to  relative altitude in meters
+ */
+/*
+
+float ms5611PressureToAltitude(float *pressure) {
+    if (*pressure > 0 && P_ground > 0) {
+        return ((powf((P_ground / *pressure), CONST_PF) - 1.0f) * (T_ground + 273.15f)) / 0.0065f;
+    } else {
+        return 0;  // Return 0 if pressure is invalid or ground pressure is not set
+    }
+} */
 
 /**
  * Converts pressure to altitude above sea level (ASL) in meters
  */
-float ms5611PressureToAltitude(float *pressure/*, float* ground_pressure, float* ground_temp*/)
+
+float ms5611PressureToAltitude(float *pressure)//, float* ground_pressure, float* ground_temp)
 {
     if (*pressure > 0) {
         //return (1.f - powf(*pressure / CONST_SEA_PRESSURE, CONST_PF)) * CONST_PF2;

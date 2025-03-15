@@ -18,6 +18,11 @@
 #include "stm32_legacy.h"
 #define DEBUG_MODULE  "WIFI_UDP"
 #include "debug_cf.h"
+//below added by dks
+#include "ledseq.h"
+#include "system.h"
+#include "ms5611.h"
+#include "position_controller.h"
 
 #define UDP_SERVER_PORT         2390
 #define UDP_SERVER_BUFSIZE      128
@@ -35,6 +40,9 @@ static uint8_t WIFI_CH = 1;
 #define MACSTR "%02x:%02x:%02x:%02x:%02x:%02x"
 #endif
 
+bool altHoldMode = false;
+
+
 static char rx_buffer[UDP_SERVER_BUFSIZE];
 static char tx_buffer[UDP_SERVER_BUFSIZE];
 const int addr_family = (int)AF_INET;
@@ -50,6 +58,10 @@ static UDPPacket outPacket;
 static bool isInit = false;
 static bool isUDPInit = false;
 static bool isUDPConnected = false;
+
+static bool isAltHoldEnabled = false; // Track the state of AltHold dks
+static bool isOnground = false; // status of the drone dks
+
 
 static esp_err_t udp_server_create(void *arg);
 
@@ -151,6 +163,45 @@ static void udp_server_rx_task(void *pvParameters)
         } else {
             //copy part of the UDP packet
             rx_buffer[len] = 0;// Null-terminate whatever we received and treat like a string...
+             // Log the incoming packet
+            
+            printf("Received packet of size: %d bytes\n", len);
+            printf("Received packet data: ");
+            for (int i = 0; i < len; i++) {
+                printf(" %02X", rx_buffer[i]);
+            }
+            printf("\n");
+            
+            if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x83) // added by dks to enable the button command
+            {
+                if (!isOnground){
+                    ledSet(1,1);
+                    ms5611GetData(&pressure_m, &temperature_m, &asl_m);
+                    printf("Pressure = %.4f mbar, Temperature = %.4f °C \n", pressure_m, temperature_m);
+                    setGroundReference(pressure_m,temperature_m,asl_m);
+                    isOnground = true;
+                    //printf("Ground Barometer Data: Pressure = %.4f mbar, Temperature = %.4f °C \n", pressure_m, temperature_m);
+
+                }
+               
+            }
+            else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x01 && rx_buffer[3] == 0x84){
+                if (!isAltHoldEnabled){
+                    altHoldMode = true;
+                    if(altHoldMode){ 
+                         printf("althold mode is actvated and target altitude is %f \n",relaAlt);
+                         targetAltitude = relaAlt;
+                    }
+                     isAltHoldEnabled = true;
+                }
+                 else {
+                     ledSet(1,0);
+                     //altHoldMode = false;
+                     printf("althold mode is false \n");
+                     isAltHoldEnabled = false;
+                 }
+
+            }
             memcpy(inPacket.data, rx_buffer, len);
             cksum = inPacket.data[len - 1];
             //remove cksum, do not belong to CRTP
@@ -200,6 +251,7 @@ static void udp_server_tx_task(void *pvParameters)
         }    
     }
 }
+
 
 
 void wifiInit(void)

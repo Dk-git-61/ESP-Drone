@@ -80,7 +80,7 @@
  * Enable sensors on board 
  */
 // #define SENSORS_ENABLE_MAG_HM5883L
-// #define SENSORS_ENABLE_PRESSURE_MS5611
+#define SENSORS_ENABLE_PRESSURE_MS5611
 //#define SENSORS_ENABLE_RANGE_VL53L0X
 #define SENSORS_ENABLE_RANGE_VL53L1X
 #define SENSORS_ENABLE_FLOW_PMW3901
@@ -119,6 +119,10 @@
 
 #define PITCH_CALIB (CONFIG_PITCH_CALIB*1.0/100)
 #define ROLL_CALIB (CONFIG_ROLL_CALIB*1.0/100)
+
+float  relaAlt = 0.0f; 
+
+//bool ground_press_temp_data = FALSE;
 
 typedef struct {
     Axis3f bias;
@@ -305,18 +309,40 @@ void sensorsMpu6050Hmc5883lMs5611WaitDataReady(void)
 
 void processBarometerMeasurements(const uint8_t *buffer)
 {
-    //TODO: replace it to MS5611
-    DEBUG_PRINTW("processBarometerMeasurements NEED TODO");
-//   static uint32_t rawPressure = 0;
-//   static int16_t rawTemp = 0;
+    float pressure, temperature, asl;  // Altitude above sea level pressure_m, temperature_m, asl_m
 
-// Check if there is a new pressure update
+    // Read MS5611 data
+    ms5611GetData(&pressure, &temperature, &asl);
+    /*
+    // to take ground pressure and temperature data
+    if(!ground_press_temp_data)
+    {
+        setGroundReference(pressure,temperature);
+        printf("Ground Barometer Data: Pressure = %.4f mbar, Temperature = %.4f °C \n", pressure, temperature);
+        ground_press_temp_data = TRUE;
+    }
+    */
 
-// Check if there is a new temp update
+    // Store data in the barometer sensor structure
+    sensorData.baro.pressure = pressure;
+    sensorData.baro.temperature = temperature;
+    sensorData.baro.asl = asl;
+    //currentAltitude = sensorData.baro.asl;
+    //printf("Barometer Data: Pressure = %.4f mbar, Pressure_m = %.4f \n", pressure, pressure_m);
 
-//   sensorData.baro.pressure = (float) rawPressure / LPS25H_LSB_PER_MBAR;
-//   sensorData.baro.temperature = LPS25H_TEMP_OFFSET + ((float) rawTemp / LPS25H_LSB_PER_CELSIUS);
-//   sensorData.baro.asl = lps25hPressureToAltitude(&sensorData.baro.pressure);
+    float Amsl = ms5611PressureToAltitude(&pressure);
+    relaAlt = Amsl - A_ground;
+    printf("Barometer Data: Altitude AMSL = %.4f mbar, Altitude_Ground = %.4f,Altitude_Relative = %.4f \n", Amsl, A_ground,relaAlt);
+    //printf("Relative Altitude = %.4f m \n",relaAlt);
+    /*
+    if(isAltHoldEnabled){
+        float relaAlt = ms5611PressureToAltitude(&pressure_m) - A_ground;
+        printf("Relative Altitude = %.4f m \n",relaAlt);
+    }*/
+
+    //DEBUG_PRINTW("Barometer Data: Pressure = %.2f mbar, Temperature = %.2f °C, Altitude = %.2f m", pressure, temperature, asl);
+    //printf("Barometer Data: Pressure = %.4f mbar, Temperature = %.4f °C, Altitude = %.4f m \n", pressure, temperature, asl);
+    
 }
 
 void processMagnetometerMeasurements(const uint8_t *buffer)
@@ -494,7 +520,7 @@ static void sensorsDeviceInit(void)
 #ifdef SENSORS_ENABLE_PRESSURE_MS5611
     ms5611Init(I2C0_DEV);
 
-    if (false) {
+    if (true) {
         isBarometerPresent = true;
         DEBUG_PRINTI("MS5611 I2C connection [OK].\n");
     } else {

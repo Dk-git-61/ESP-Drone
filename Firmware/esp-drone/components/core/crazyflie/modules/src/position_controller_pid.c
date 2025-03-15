@@ -37,6 +37,16 @@
 #define DEBUG_MODULE "POSITION_CONTROLLER"
 #include "debug_cf.h"
 
+float Kp = 1.5f;  // Proportional gain
+float Ki = 0.01f; // Integral gain
+float Kd = 0.5f;  // Derivative gain
+
+float altitudeError = 0;
+float integralError = 0;
+float lastError = 0;
+
+float targetAltitude = 0.0f;
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -251,6 +261,27 @@ void positionControllerResetAllPID()
   pidReset(&this.pidVX.pid);
   pidReset(&this.pidVY.pid);
   pidReset(&this.pidVZ.pid);
+}
+
+// added by dks
+float computeAltitudeHoldPID(float currentAltitude)
+{
+    altitudeError = targetAltitude - currentAltitude;
+
+    // Proportional term
+    float P = Kp * altitudeError;
+
+    // Integral term
+    integralError += altitudeError;
+    float I = Ki * integralError;
+
+    // Derivative term
+    float D = Kd * (altitudeError - lastError);
+    lastError = altitudeError;
+
+    // Compute thrust adjustment
+    float thrustAdjustment = P + I + D;
+    return thrustAdjustment;
 }
 
 LOG_GROUP_START(posCtl)
