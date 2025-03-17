@@ -332,7 +332,8 @@ void processBarometerMeasurements(const uint8_t *buffer)
 
     float Amsl = ms5611PressureToAltitude(&pressure);
     relaAlt = Amsl - A_ground;
-    printf("Barometer Data: Altitude AMSL = %.4f mbar, Altitude_Ground = %.4f,Altitude_Relative = %.4f \n", Amsl, A_ground,relaAlt);
+    
+    //printf("Barometer Data: Altitude AMSL = %.4f mbar, Altitude_Ground = %.4f,Altitude_Relative = %.4f \n", Amsl, A_ground,relaAlt);
     //printf("Relative Altitude = %.4f m \n",relaAlt);
     /*
     if(isAltHoldEnabled){

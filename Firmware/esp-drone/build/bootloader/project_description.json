@@ -1,8 +1,8 @@
 {
     "project_name":       "bootloader",
     "project_path":       "C:/Users/Dks/esp/v4.4.4/esp-idf/components/bootloader/subproject",
-    "build_dir":          "C:/Users/Dks/esp_drone_alt_hold/Firmware/esp-drone/build/bootloader",
-    "config_file":        "C:/Users/Dks/esp_drone_alt_hold/Firmware/esp-drone/sdkconfig",
+    "build_dir":          "C:/Users/Dks/alt_hold_ed/Firmware/esp-drone/build/bootloader",
+    "config_file":        "C:/Users/Dks/alt_hold_ed/Firmware/esp-drone/sdkconfig",
     "config_defaults":    "",
     "app_elf":            "bootloader.elf",
     "app_bin":            "bootloader.bin",

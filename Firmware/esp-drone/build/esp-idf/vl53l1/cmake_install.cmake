@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/Dks/esp_drone_alt_hold/Firmware/esp-drone/components/drivers/i2c_devices/vl53l1
+# Install script for directory: C:/Users/Dks/alt_hold_ed/Firmware/esp-drone/components/drivers/i2c_devices/vl53l1
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

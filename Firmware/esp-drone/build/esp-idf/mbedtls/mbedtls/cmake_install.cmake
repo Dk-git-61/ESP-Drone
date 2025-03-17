@@ -39,9 +39,9 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("C:/Users/Dks/esp_drone_alt_hold/Firmware/esp-drone/build/esp-idf/mbedtls/mbedtls/include/cmake_install.cmake")
-  include("C:/Users/Dks/esp_drone_alt_hold/Firmware/esp-drone/build/esp-idf/mbedtls/mbedtls/3rdparty/cmake_install.cmake")
-  include("C:/Users/Dks/esp_drone_alt_hold/Firmware/esp-drone/build/esp-idf/mbedtls/mbedtls/library/cmake_install.cmake")
+  include("C:/Users/Dks/alt_hold_ed/Firmware/esp-drone/build/esp-idf/mbedtls/mbedtls/include/cmake_install.cmake")
+  include("C:/Users/Dks/alt_hold_ed/Firmware/esp-drone/build/esp-idf/mbedtls/mbedtls/3rdparty/cmake_install.cmake")
+  include("C:/Users/Dks/alt_hold_ed/Firmware/esp-drone/build/esp-idf/mbedtls/mbedtls/library/cmake_install.cmake")
 
 endif()
 

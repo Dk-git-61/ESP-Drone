@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/Dks/esp_drone_alt_hold/Firmware/esp-drone/components/drivers/general/adc
+# Install script for directory: C:/Users/Dks/alt_hold_ed/Firmware/esp-drone/components/drivers/general/adc
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

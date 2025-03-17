@@ -60,6 +60,8 @@ static bool isUDPInit = false;
 static bool isUDPConnected = false;
 
 static bool isAltHoldEnabled = false; // Track the state of AltHold dks
+//bool altHoldMode = false;
+
 static bool isOnground = false; // status of the drone dks
 
 
@@ -164,20 +166,20 @@ static void udp_server_rx_task(void *pvParameters)
             //copy part of the UDP packet
             rx_buffer[len] = 0;// Null-terminate whatever we received and treat like a string...
              // Log the incoming packet
-            
+            /*
             printf("Received packet of size: %d bytes\n", len);
             printf("Received packet data: ");
             for (int i = 0; i < len; i++) {
                 printf(" %02X", rx_buffer[i]);
             }
-            printf("\n");
+            printf("\n");*/
             
             if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x83) // added by dks to enable the button command
             {
                 if (!isOnground){
                     ledSet(1,1);
                     ms5611GetData(&pressure_m, &temperature_m, &asl_m);
-                    printf("Pressure = %.4f mbar, Temperature = %.4f °C \n", pressure_m, temperature_m);
+                    printf("Takeoff altitude is Pressure = %.4f mbar, Temperature = %.4f °C \n", pressure_m, temperature_m);
                     setGroundReference(pressure_m,temperature_m,asl_m);
                     isOnground = true;
                     //printf("Ground Barometer Data: Pressure = %.4f mbar, Temperature = %.4f °C \n", pressure_m, temperature_m);
@@ -185,7 +187,11 @@ static void udp_server_rx_task(void *pvParameters)
                 }
                
             }
-            else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x01 && rx_buffer[3] == 0x84){
+            else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x12 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x86) // added by dks to enable the button command
+            {
+                ledSet(1,0);
+            }
+            if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x01 && rx_buffer[3] == 0x84){
                 if (!isAltHoldEnabled){
                     altHoldMode = true;
                     if(altHoldMode){ 
@@ -201,6 +207,13 @@ static void udp_server_rx_task(void *pvParameters)
                      isAltHoldEnabled = false;
                  }
 
+            }
+            else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x85)
+            {
+                if (isAltHoldEnabled){
+                    altHoldMode = false;
+                    printf("althold mode is deactivated \n");
+                }
             }
             memcpy(inPacket.data, rx_buffer, len);
             cksum = inPacket.data[len - 1];

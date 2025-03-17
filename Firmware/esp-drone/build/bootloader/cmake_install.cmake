@@ -39,7 +39,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("C:/Users/Dks/esp_drone_alt_hold/Firmware/esp-drone/build/bootloader/esp-idf/cmake_install.cmake")
+  include("C:/Users/Dks/alt_hold_ed/Firmware/esp-drone/build/bootloader/esp-idf/cmake_install.cmake")
 
 endif()
 
@@ -51,5 +51,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "C:/Users/Dks/esp_drone_alt_hold/Firmware/esp-drone/build/bootloader/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "C:/Users/Dks/alt_hold_ed/Firmware/esp-drone/build/bootloader/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

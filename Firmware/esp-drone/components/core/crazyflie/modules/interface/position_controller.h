@@ -34,6 +34,8 @@
 float asl;
 extern float targetAltitude;
 float currentAltitude;
+extern bool altHoldMode;
+
 
 float computeAltitudeHoldPID(float currentAltitude);
 
