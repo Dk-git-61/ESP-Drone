@@ -56,6 +56,7 @@
 bool vl53l1xInit(VL53L1_Dev_t *pdev, I2C_Dev *I2cHandle)
 {
   VL53L1_Error status = VL53L1_ERROR_NONE;
+  printf("status after VL53L1_Error is: %d\n",status); //dks
 
   pdev->I2cDevAddr = VL53L1X_DEFAULT_ADDRESS;
   pdev->I2Cx = I2cHandle;
@@ -80,13 +81,16 @@ bool vl53l1xInit(VL53L1_Dev_t *pdev, I2C_Dev *I2cHandle)
   DEBUG_PRINT( "VL53L1X: %02X\n\r", wordData);
 
   status = VL53L1_WaitDeviceBooted(pdev);
+  printf("status after VL53L1_WaitDeviceBooted is: %d\n ",status); //dks
   if (status == VL53L1_ERROR_NONE)
   {
 	status = VL53L1_DataInit(pdev);
+	printf("status after VL53L1_DataInit is: %d\n",status); //dks
 
 	if (status == VL53L1_ERROR_NONE)
 	{
 		status = VL53L1_StaticInit(pdev);
+		printf("status after VL53L1_StaticInit is: %d\n",status); //dks
 	}
   }
 
