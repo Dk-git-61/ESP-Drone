@@ -1,5 +1,5 @@
 {
-    "idf.portWin": "COM39",
+    "idf.portWin": "COM42",
     "idf.flashType": "UART",
     "files.associations": {
         "num.h": "c"
