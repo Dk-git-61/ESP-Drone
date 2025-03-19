@@ -65,6 +65,7 @@
 #include "debug_cf.h"
 #include "static_mem.h"
 #include "crtp_commander.h"
+#include "position_controller.h"
 
 /**
  * Enable 250Hz digital LPF mode. However does not work with
@@ -80,7 +81,7 @@
  * Enable sensors on board 
  */
 // #define SENSORS_ENABLE_MAG_HM5883L
-//#define SENSORS_ENABLE_PRESSURE_MS5611
+#define SENSORS_ENABLE_PRESSURE_MS5611
 //#define SENSORS_ENABLE_RANGE_VL53L0X
 #define SENSORS_ENABLE_RANGE_VL53L1X
 #define SENSORS_ENABLE_FLOW_PMW3901
@@ -330,8 +331,9 @@ void processBarometerMeasurements(const uint8_t *buffer)
     //currentAltitude = sensorData.baro.asl;
     //printf("Barometer Data: Pressure = %.4f mbar, Pressure_m = %.4f \n", pressure, pressure_m);
 
-    float Amsl = ms5611PressureToAltitude(&pressure);
-    relaAlt = Amsl - A_ground;
+    //float Amsl = ms5611PressureToAltitude(&pressure);
+    //relaAlt = Amsl - A_ground;
+    relaAlt = (float)positionEstimatorGetEstimatedZ();
     
     //printf("Barometer Data: Altitude AMSL = %.4f mbar, Altitude_Ground = %.4f,Altitude_Relative = %.4f \n", Amsl, A_ground,relaAlt);
     //printf("Relative Altitude = %.4f m \n",relaAlt);
@@ -342,7 +344,9 @@ void processBarometerMeasurements(const uint8_t *buffer)
     }*/
 
     //DEBUG_PRINTW("Barometer Data: Pressure = %.2f mbar, Temperature = %.2f °C, Altitude = %.2f m", pressure, temperature, asl);
-    //printf("Barometer Data: Pressure = %.4f mbar, Temperature = %.4f °C, Altitude = %.4f m \n", pressure, temperature, asl);
+    //printf("Barometer Data: estimatedZ = %.4f m \n",estimatedZ);
+    printf("Fused: Altitude: %.2f m\n", (float)positionEstimatorGetEstimatedZ());
+    printf("Barometer Data: Pressure = %.4f mbar, Temperature = %.4f °C, Altitude = %.4f m \n", pressure, temperature, asl);
     
 }
 
@@ -637,6 +641,7 @@ static void sensorsSetupSlaveRead(void)
         mpu6050SetSlaveDelayEnabled(2, true);
         mpu6050SetSlaveEnabled(2, true);
         DEBUG_PRINTD("mpu6050SetSlaveAddress MS5611 done \n");
+        printf("mpu6050SetSlaveAddress MS5611 done \n");
     }
 
 #endif

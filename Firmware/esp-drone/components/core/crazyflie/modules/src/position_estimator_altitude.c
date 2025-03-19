@@ -32,6 +32,7 @@
 #include "param.h"
 #include "num.h"
 #include "position_estimator.h"
+#include "position_controller.h" // added by dks
 
 #define G 9.81f;
 
@@ -66,6 +67,9 @@ void positionEstimate(state_t* estimate, const sensorData_t* sensorData, const t
 
 void positionUpdateVelocity(float accWZ, float dt) {
   positionUpdateVelocityInternal(accWZ, dt, &state);
+}
+float positionEstimatorGetEstimatedZ(void) {   // added by dks
+  return state.estimatedZ;
 }
 
 static void positionEstimateInternal(state_t* estimate, const sensorData_t* sensorData, const tofMeasurement_t* tofMeasurement, float dt, uint32_t tick, struct selfState_s* state) {

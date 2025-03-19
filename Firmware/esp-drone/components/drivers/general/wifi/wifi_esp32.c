@@ -196,7 +196,10 @@ static void udp_server_rx_task(void *pvParameters)
                     altHoldMode = true;
                     if(altHoldMode){ 
                          printf("althold mode is actvated and target altitude is %f \n",relaAlt);
-                         targetAltitude = relaAlt;
+                         // Use your estimator's fused Z position as target
+                        targetAltitude = positionEstimatorGetEstimatedZ();
+                        printf("AltHold Mode Activated! Target Altitude: %.2f m\n", targetAltitude);
+                        //targetAltitude = relaAlt;
                     }
                      isAltHoldEnabled = true;
                 }

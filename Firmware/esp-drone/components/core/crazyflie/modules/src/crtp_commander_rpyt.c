@@ -185,21 +185,22 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   }
 
   if (altHoldMode) {
-    //setpoint->thrust = 0;
+    setpoint->thrust = 0;
+    /*
     printf("inside crtp_commander_rpyt \n");
     printf("Raw thrust is: %u \n",rawThrust);
-    float h_thrust = 58500 + computeAltitudeHoldPID(relaAlt);
+    //float h_thrust = 58500 + computeAltitudeHoldPID(relaAlt);
     printf("h_thrust before limit is : %f \n",h_thrust);
     h_thrust = fminf(h_thrust, MAX_THRUST);
     h_thrust = fmaxf(h_thrust, MIN_THRUST);
     printf("h_thrust after limit is is : %f \n",h_thrust);
     setpoint->thrust = h_thrust;
-    setpoint->mode.z = modeDisable;
+    setpoint->mode.z = modeDisable;*/
 
     //setpoint->thrust = fminf(h_thrust, MAX_THRUST);
-    //setpoint->mode.z = modeVelocity;
+    setpoint->mode.z = modeVelocity;
 
-    //setpoint->velocity.z = 32767.f + computeAltitudeHoldPID(relaAlt);
+    setpoint->velocity.z = 32767.f + computeAltitudeHoldPID(relaAlt);
 
     //setpoint->velocity.z = ((float) rawThrust - 32767.f) / 32767.f;
   } else {

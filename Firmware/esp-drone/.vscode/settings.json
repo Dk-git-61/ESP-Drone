@@ -1,7 +1,9 @@
 {
-    "idf.portWin": "COM42",
+    "idf.portWin": "COM39",
     "idf.flashType": "UART",
     "files.associations": {
-        "num.h": "c"
+        "num.h": "c",
+        "i2cdev.h": "c",
+        "ms5611.h": "c"
     }
 }

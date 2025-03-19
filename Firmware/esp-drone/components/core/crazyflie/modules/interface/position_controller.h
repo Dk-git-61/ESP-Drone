@@ -35,7 +35,9 @@ float asl;
 extern float targetAltitude;
 float currentAltitude;
 extern bool altHoldMode;
+//extern float estimatedZ;   
 
+float positionEstimatorGetEstimatedZ(void); // added by dks
 
 float computeAltitudeHoldPID(float currentAltitude);
 

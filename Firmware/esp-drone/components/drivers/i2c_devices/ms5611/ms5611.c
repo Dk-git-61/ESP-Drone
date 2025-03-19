@@ -119,6 +119,7 @@ bool ms5611SelfTest(void)
     if (ms5611EvaluateSelfTest(MS5611_ST_PRESS_MIN, MS5611_ST_PRESS_MAX, pressure, "pressure") &&
             ms5611EvaluateSelfTest(MS5611_ST_TEMP_MIN, MS5611_ST_TEMP_MAX, temperature, "temperature")) {
         DEBUG_PRINTD("ms5611 Self test [OK].\n");
+        printf("ms5611 Self test [OK].\n");
     } else {
         testStatus = false;
     }
@@ -129,8 +130,11 @@ bool ms5611SelfTest(void)
 bool ms5611EvaluateSelfTest(float min, float max, float value, char *string)
 {
     if (value < min || value > max) {
+        printf("Self test %s [FAIL]. low: %0.2f, high: %0.2f, measured: %0.2f\n",
+                     string, (double)min, (double)max, (double)value);
         DEBUG_PRINTD("Self test %s [FAIL]. low: %0.2f, high: %0.2f, measured: %0.2f\n",
                      string, (double)min, (double)max, (double)value);
+                     
         return false;
     }
 
