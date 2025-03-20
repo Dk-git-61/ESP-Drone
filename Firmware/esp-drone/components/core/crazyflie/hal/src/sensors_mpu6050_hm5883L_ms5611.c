@@ -345,8 +345,8 @@ void processBarometerMeasurements(const uint8_t *buffer)
 
     //DEBUG_PRINTW("Barometer Data: Pressure = %.2f mbar, Temperature = %.2f °C, Altitude = %.2f m", pressure, temperature, asl);
     //printf("Barometer Data: estimatedZ = %.4f m \n",estimatedZ);
-    printf("Fused: Altitude: %.2f m\n", (float)positionEstimatorGetEstimatedZ());
-    printf("Barometer Data: Pressure = %.4f mbar, Temperature = %.4f °C, Altitude = %.4f m \n", pressure, temperature, asl);
+    //printf("Fused: Altitude: %.3f m\n", (float)positionEstimatorGetEstimatedZ());
+    //printf("Barometer Data: Pressure = %.4f mbar, Temperature = %.4f °C, Altitude = %.4f m \n", pressure, temperature, asl);
     
 }
 

@@ -37,13 +37,16 @@
 #define DEBUG_MODULE "POSITION_CONTROLLER"
 #include "debug_cf.h"
 
-float Kp = 1.5f;  // Proportional gain
+/*
+float Kp = 15.5f;  // Proportional gain
 float Ki = 0.01f; // Integral gain
 float Kd = 0.5f;  // Derivative gain
+*/
 
 float altitudeError = 0;
 float integralError = 0;
 float lastError = 0;
+
 
 float targetAltitude = 0.0f;
 
@@ -115,9 +118,9 @@ static struct this_s this = {
 
   .pidVZ = {
     .init = {
-      .kp = 22,
-      .ki = 15,
-      .kd = 0,
+      .kp = 22.0f,
+      .ki = 15.0f,
+      .kd = 0.0f,
     },
     .pid.dt = DT,
   },
@@ -264,6 +267,7 @@ void positionControllerResetAllPID()
 }
 
 // added by dks
+/*
 float computeAltitudeHoldPID(float currentAltitude)
 {
     altitudeError = targetAltitude - currentAltitude;
@@ -282,7 +286,7 @@ float computeAltitudeHoldPID(float currentAltitude)
     // Compute thrust adjustment
     float thrustAdjustment = P + I + D;
     return thrustAdjustment;
-}
+}*/
 
 LOG_GROUP_START(posCtl)
 

@@ -35,6 +35,9 @@
 #include "position_controller.h" // added by dks
 
 #define G 9.81f;
+static float zeroOffset = 0.0f;
+static bool zeroOffsetSet = false;
+static float lpfFilteredZ = 0.0f; // For additional smoothing
 
 struct selfState_s {
   float estimatedZ; // The current Z estimate, has same offset as asl
@@ -69,7 +72,9 @@ void positionUpdateVelocity(float accWZ, float dt) {
   positionUpdateVelocityInternal(accWZ, dt, &state);
 }
 float positionEstimatorGetEstimatedZ(void) {   // added by dks
-  return state.estimatedZ;
+  //return state.estimatedZ;
+  return lpfFilteredZ ; 
+
 }
 
 static void positionEstimateInternal(state_t* estimate, const sensorData_t* sensorData, const tofMeasurement_t* tofMeasurement, float dt, uint32_t tick, struct selfState_s* state) {
@@ -81,6 +86,15 @@ static void positionEstimateInternal(state_t* estimate, const sensorData_t* sens
 
   uint32_t now = xTaskGetTickCount();
   bool isSampleUseful = ((now - tofMeasurement->timestamp) <= MAX_SAMPLE_AGE);
+
+  // Zero baseline offset logic (only once when drone starts)
+  /*
+  if (!zeroOffsetSet) {
+    if (sensorData->baro.asl > 0.1f) {
+      zeroOffset = sensorData->baro.asl;
+      zeroOffsetSet = true;
+    }
+  }*/
 
   if (isSampleUseful) {
     surfaceFollowingMode = true;
@@ -97,15 +111,23 @@ static void positionEstimateInternal(state_t* estimate, const sensorData_t* sens
   } else {
     // FIXME: A bit of an hack to init IIR filter
     if (state->estimatedZ == 0.0f) {
-      filteredZ = sensorData->baro.asl;
+      //filteredZ = sensorData->baro.asl;
+      filteredZ = sensorData->baro.asl - zeroOffset;
     } else {
-      // IIR filter asl
+      // IIR filter asl 
+      
       filteredZ = (state->estAlphaAsl       ) * state->estimatedZ +
                   (1.0f - state->estAlphaAsl) * sensorData->baro.asl;
+      //filteredZ = (state->estAlphaAsl       ) * state->estimatedZ +
+        //          (1.0f - state->estAlphaAsl) * (sensorData->baro.asl - zeroOffset);
     }
     // Use asl as base and add velocity changes.
     state->estimatedZ = filteredZ + (state->velocityFactor * state->velocityZ * dt);
+     // Apply an additional LPF smoothing on the output dks
+    lpfFilteredZ = 0.98f * lpfFilteredZ + 0.02f * state->estimatedZ; 
   }
+
+  /*
 
   estimate->position.x = 0.0f;
   estimate->position.y = 0.0f;
@@ -113,6 +135,14 @@ static void positionEstimateInternal(state_t* estimate, const sensorData_t* sens
   estimate->velocity.z = (state->estimatedZ - prev_estimatedZ) / dt;
   state->estimatedVZ = estimate->velocity.z;
   prev_estimatedZ = state->estimatedZ;
+  */
+ // Output to estimator struct
+  estimate->position.x = 0.0f;
+  estimate->position.y = 0.0f;
+  estimate->position.z = lpfFilteredZ;
+  estimate->velocity.z = (lpfFilteredZ - prev_estimatedZ) / dt;
+  state->estimatedVZ = estimate->velocity.z;
+  prev_estimatedZ = lpfFilteredZ;
 }
 
 static void positionUpdateVelocityInternal(float accWZ, float dt, struct selfState_s* state) {

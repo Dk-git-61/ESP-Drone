@@ -4,6 +4,7 @@
     "files.associations": {
         "num.h": "c",
         "i2cdev.h": "c",
-        "ms5611.h": "c"
+        "ms5611.h": "c",
+        "position_controller.h": "c"
     }
 }
