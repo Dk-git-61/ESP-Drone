@@ -42,7 +42,7 @@
 
 #define MIN_THRUST  1000
 #define MAX_THRUST  60000
-#define HOVER_THRUST 43000.f // experimentally determined hover thrust dks
+#define HOVER_THRUST 42000.f // experimentally determined hover thrust dks
 
 
 
@@ -187,30 +187,35 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   }
 
   if (altHoldMode) {
-    setpoint->thrust = 0;
-    /*
-    printf("inside crtp_commander_rpyt \n");
-    
-    //float h_thrust = 58500 + computeAltitudeHoldPID(relaAlt);
+    setpoint->mode.z = modeDisable;
+    setpoint->thrust = 42000; // hovering on this thrust value
+    float h_thrust = HOVER_THRUST + computeAltitudeHoldPID(relaAlt);
     printf("h_thrust before limit is : %f \n",h_thrust);
     h_thrust = fminf(h_thrust, MAX_THRUST);
     h_thrust = fmaxf(h_thrust, MIN_THRUST);
     printf("h_thrust after limit is is : %f \n",h_thrust);
-    setpoint->thrust = h_thrust;
-    setpoint->mode.z = modeDisable;*/
-    printf("Raw thrust is: %u \n",rawThrust);
+    //setpoint->thrust = h_thrust;
+    
+    //setpoint->thrust = 0;
+
+    //printf("inside crtp_commander_rpyt \n");
+    
+    
+
+    
+    //printf("Raw thrust is: %u \n",rawThrust);
 
     //setpoint->thrust = fminf(h_thrust, MAX_THRUST);
-    setpoint->mode.z = modeVelocity;
+    //setpoint->mode.z = modeVelocity;
     //setpoint->velocity.z = (((float) rawThrust - HOVER_THRUST) / HOVER_THRUST);
-    setpoint->velocity.z = (((float) rawThrust - (float) rawThrust) / (float) rawThrust);
+    //setpoint->velocity.z = (((float) rawThrust - (float) rawThrust) / (float) rawThrust);
     //setpoint->velocity.z = (((float) rawThrust - 32767.f) / 32767.f); 
 
     //setpoint->velocity.z = 32767.f + computeAltitudeHoldPID(relaAlt);
     //printf("computealtitudeholdpid is : %f \n",computeAltitudeHoldPID(relaAlt));
     //setpoint->velocity.z = (((float) rawThrust - 32767.f) / 32767.f) + computeAltitudeHoldPID(relaAlt);
     //setpoint->velocity.z = baseThrust + computeAltitudeHoldPID(relaAlt);
-    printf("setpoint->velocity.z is : %f \n",setpoint->velocity.z);
+    //printf("setpoint->velocity.z is : %f \n",setpoint->velocity.z);
   } else {
     setpoint->mode.z = modeDisable;
   }

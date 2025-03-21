@@ -36,6 +36,7 @@
 #include "position_controller.h"
 #define DEBUG_MODULE "POSITION_CONTROLLER"
 #include "debug_cf.h"
+#include <stdio.h>
 
 /*
 float Kp = 15.5f;  // Proportional gain
@@ -46,6 +47,10 @@ float Kd = 0.5f;  // Derivative gain
 float altitudeError = 0;
 float integralError = 0;
 float lastError = 0;
+
+float Kpx = 15.50f;
+float Kix = 10.0f; 
+float Kdx = 0.1f;
 
 
 float targetAltitude = 0.0f;
@@ -162,8 +167,8 @@ static struct this_s this = {
   .thrustMin  = 20000,
   #endif
 #else
-  .thrustBase = 24000,
-  .thrustMin  = 5000,
+  .thrustBase = 42000, //24000, chnaged by dks
+  .thrustMin  = 8000,  //5000, chnaged by dks
 #endif
 
 };
@@ -185,6 +190,7 @@ void positionControllerInit()
   pidInit(&this.pidVZ.pid, this.pidVZ.setpoint, this.pidVZ.init.kp, this.pidVZ.init.ki, this.pidVZ.init.kd,
       this.pidVZ.pid.dt, POSITION_RATE, POSITION_LPF_CUTOFF_FREQ, POSITION_LPF_ENABLE);
   DEBUG_PRINTI("thrustBase = %d,thrustMin  = %d",this.thrustBase,this.thrustMin);
+  printf("thrustBase = %d,thrustMin  = %d",this.thrustBase,this.thrustMin);
 }
 
 static float runPid(float input, struct pidAxis_s *axis, float setpoint, float dt) {
@@ -267,26 +273,26 @@ void positionControllerResetAllPID()
 }
 
 // added by dks
-/*
+
 float computeAltitudeHoldPID(float currentAltitude)
 {
     altitudeError = targetAltitude - currentAltitude;
 
     // Proportional term
-    float P = Kp * altitudeError;
+    float P = Kpx * altitudeError;
 
     // Integral term
     integralError += altitudeError;
-    float I = Ki * integralError;
+    float I = Kix * integralError;
 
     // Derivative term
-    float D = Kd * (altitudeError - lastError);
+    float D = Kdx * (altitudeError - lastError);
     lastError = altitudeError;
 
     // Compute thrust adjustment
     float thrustAdjustment = P + I + D;
     return thrustAdjustment;
-}*/
+}
 
 LOG_GROUP_START(posCtl)
 

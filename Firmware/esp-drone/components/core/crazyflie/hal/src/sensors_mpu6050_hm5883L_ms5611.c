@@ -334,6 +334,7 @@ void processBarometerMeasurements(const uint8_t *buffer)
     //float Amsl = ms5611PressureToAltitude(&pressure);
     //relaAlt = Amsl - A_ground;
     relaAlt = (float)positionEstimatorGetEstimatedZ();
+    computeAltitudeHoldPID(relaAlt);
     
     //printf("Barometer Data: Altitude AMSL = %.4f mbar, Altitude_Ground = %.4f,Altitude_Relative = %.4f \n", Amsl, A_ground,relaAlt);
     //printf("Relative Altitude = %.4f m \n",relaAlt);
@@ -345,7 +346,7 @@ void processBarometerMeasurements(const uint8_t *buffer)
 
     //DEBUG_PRINTW("Barometer Data: Pressure = %.2f mbar, Temperature = %.2f °C, Altitude = %.2f m", pressure, temperature, asl);
     //printf("Barometer Data: estimatedZ = %.4f m \n",estimatedZ);
-    //printf("Fused: Altitude: %.3f m\n", (float)positionEstimatorGetEstimatedZ());
+    //printf("Fused: Altitude: %.4f m\n", (float)positionEstimatorGetEstimatedZ());
     //printf("Barometer Data: Pressure = %.4f mbar, Temperature = %.4f °C, Altitude = %.4f m \n", pressure, temperature, asl);
     
 }
