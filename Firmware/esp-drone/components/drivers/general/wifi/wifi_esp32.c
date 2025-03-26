@@ -19,6 +19,8 @@
 #define DEBUG_MODULE  "WIFI_UDP"
 #include "debug_cf.h"
 
+#include "pm_esplane.h" //dks
+
 #define UDP_SERVER_PORT         2390
 #define UDP_SERVER_BUFSIZE      128
 
@@ -151,6 +153,13 @@ static void udp_server_rx_task(void *pvParameters)
         } else {
             //copy part of the UDP packet
             rx_buffer[len] = 0;// Null-terminate whatever we received and treat like a string...
+            if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x01 && rx_buffer[3] == 0x84){ // added by dks
+                //sendBatteryVoltageTask();
+            }
+            else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x85)
+            {
+                
+            }
             memcpy(inPacket.data, rx_buffer, len);
             cksum = inPacket.data[len - 1];
             //remove cksum, do not belong to CRTP
@@ -198,6 +207,20 @@ static void udp_server_tx_task(void *pvParameters)
             }
 #endif
         }    
+    }
+}
+static void sendBatteryVoltageTask(void)
+{
+    float voltage;
+    uint8_t packet[sizeof(float)]; // Buffer to hold the voltage data
+
+    while (1)
+    {
+        voltage = pmGetBatteryVoltage(); // Retrieve battery voltage
+        printf("Battery voltage: %f\n", voltage); // Print battery voltage to console
+        memcpy(packet, &voltage, sizeof(float)); // Copy voltage into packet buffer
+        wifiSendData(sizeof(packet), packet); // Send the packet over Wi-Fi
+        vTaskDelay(pdMS_TO_TICKS(1000)); // Delay for 1 second
     }
 }
 
@@ -269,5 +292,6 @@ void wifiInit(void)
     } 
     xTaskCreate(udp_server_tx_task, UDP_TX_TASK_NAME, UDP_TX_TASK_STACKSIZE, NULL, UDP_TX_TASK_PRI, NULL);
     xTaskCreate(udp_server_rx_task, UDP_RX_TASK_NAME, UDP_RX_TASK_STACKSIZE, NULL, UDP_RX_TASK_PRI, NULL);
+    xTaskCreate(sendBatteryVoltageTask,"BatteryVoltageTask",2048,NULL,UDP_TX_TASK_PRI + 1,NULL);
     isInit = true;
 }
