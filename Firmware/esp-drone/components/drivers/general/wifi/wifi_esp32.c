@@ -195,6 +195,12 @@ static void udp_server_tx_task(void *pvParameters)
             tx_buffer[outPacket.size] =  calculate_cksum(tx_buffer, outPacket.size);
             tx_buffer[outPacket.size + 1] = 0;
 
+            // PRINT the data being sent  dks
+            printf("Sending %d bytes: \n", outPacket.size + 1);
+            for (size_t i = 0; i < outPacket.size + 1; i++) {
+                printf("tx_buffer[%d] = 0x%02X \n", i, tx_buffer[i]);
+            }
+
             int err = sendto(sock, tx_buffer, outPacket.size + 1, 0, (struct sockaddr *)&source_addr, sizeof(source_addr));
             if (err < 0) {
                 DEBUG_PRINT_LOCAL("Error occurred during sending: errno %d", errno);
@@ -217,7 +223,7 @@ static void sendBatteryVoltageTask(void)
     while (1)
     {
         voltage = pmGetBatteryVoltage(); // Retrieve battery voltage
-        printf("Battery voltage: %f\n", voltage); // Print battery voltage to console
+        //printf("Battery voltage: %f\n", voltage); // Print battery voltage to console
         memcpy(packet, &voltage, sizeof(float)); // Copy voltage into packet buffer
         wifiSendData(sizeof(packet), packet); // Send the packet over Wi-Fi
         vTaskDelay(pdMS_TO_TICKS(1000)); // Delay for 1 second
