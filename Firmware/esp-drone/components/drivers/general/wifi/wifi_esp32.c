@@ -26,7 +26,7 @@
 
 #define UDP_SERVER_PORT         2390
 #define UDP_SERVER_BUFSIZE      128
-
+float distanceDown = 0.0f; //dks 
 static struct sockaddr_in6 source_addr; // Large enough for both IPv4 or IPv6
 
 //#define WIFI_SSID      "Udp Server"
@@ -195,7 +195,7 @@ static void udp_server_rx_task(void *pvParameters)
                 if (!isAltHoldEnabled){
                     altHoldMode = true;
                     if(altHoldMode){ 
-                         printf("althold mode is actvated and target altitude is %f \n",relaAlt);
+                         printf("althold mode is actvated with TOF");
                          targetAltitude = relaAlt;
                     }
                      isAltHoldEnabled = true;
@@ -234,6 +234,7 @@ static void udp_server_rx_task(void *pvParameters)
             }
 #endif
         }
+        printf("Tof data %f \n",distanceDown);
     }
 }
 

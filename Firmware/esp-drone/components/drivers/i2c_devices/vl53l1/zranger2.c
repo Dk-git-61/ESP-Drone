@@ -135,9 +135,10 @@ void zRanger2Task(void* arg)
     // the sensor should not be able to measure >5 [m], and outliers typically
     // occur as >8 [m] measurements
     if (range_last < RANGE_OUTLIER_LIMIT) {
-      float distance = (float)range_last * 0.001f; // Scale from [mm] to [m]
-      float stdDev = expStdA * (1.0f  + expf( expCoeff * (distance - expPointA)));
-      rangeEnqueueDownRangeInEstimator(distance, stdDev, xTaskGetTickCount());
+      //float distance = (float)range_last * 0.001f; // Scale from [mm] to [m]
+       distanceDown = (float)range_last * 0.1f; // Scale from [mm] to [m]
+      float stdDev = expStdA * (1.0f  + expf( expCoeff * (distanceDown - expPointA)));
+      rangeEnqueueDownRangeInEstimator(distanceDown, stdDev, xTaskGetTickCount());
     }
   }
 }

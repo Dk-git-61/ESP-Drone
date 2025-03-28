@@ -37,9 +37,9 @@
 #define DEBUG_MODULE "POSITION_CONTROLLER"
 #include "debug_cf.h"
 
-float Kp = 1.5f;  // Proportional gain
-float Ki = 0.01f; // Integral gain
-float Kd = 0.5f;  // Derivative gain
+float Kp = 3.0f;  // Proportional gain
+float Ki = 3.0f; // Integral gain
+float Kd = 0.15f;  // Derivative gain
 
 float altitudeError = 0;
 float integralError = 0;
@@ -273,15 +273,15 @@ float computeAltitudeHoldPID(float currentAltitude)
 
     // Integral term
     integralError += altitudeError;
-    float I = Ki * integralError;
+    float I = Ki * (integralError * DT);
 
     // Derivative term
-    float D = Kd * (altitudeError - lastError);
+    float D = Kd *((altitudeError - lastError) / DT);
     lastError = altitudeError;
 
     // Compute thrust adjustment
-    float thrustAdjustment = P + I + D;
-    return thrustAdjustment;
+    float velocityAdjustment = P + I + D;
+    return velocityAdjustment;
 }
 
 LOG_GROUP_START(posCtl)

@@ -26,6 +26,8 @@
 #include "stabilizer_types.h"
 //#include "deck_core.h"
 
+extern float distanceDown;
+
 void zRanger2Init(void);
 
 bool zRanger2Test(void);

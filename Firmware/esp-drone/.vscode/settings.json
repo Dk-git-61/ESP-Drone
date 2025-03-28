@@ -1,7 +1,9 @@
 {
-    "idf.portWin": "COM42",
+    "idf.portWin": "COM39",
     "idf.flashType": "UART",
     "files.associations": {
-        "num.h": "c"
+        "num.h": "c",
+        "cf_math.h": "c",
+        "zranger2.h": "c"
     }
 }
