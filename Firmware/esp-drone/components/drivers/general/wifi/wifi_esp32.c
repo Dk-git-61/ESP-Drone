@@ -223,7 +223,7 @@ static void sendBatteryVoltageTask(void)
     while (1)
     {
         voltage = pmGetBatteryVoltage(); // Retrieve battery voltage
-        //printf("Battery voltage: %f\n", voltage); // Print battery voltage to console
+        printf("Battery voltage: %f\n", voltage); // Print battery voltage to console
         memcpy(packet, &voltage, sizeof(float)); // Copy voltage into packet buffer
         wifiSendData(sizeof(packet), packet); // Send the packet over Wi-Fi
         vTaskDelay(pdMS_TO_TICKS(1000)); // Delay for 1 second

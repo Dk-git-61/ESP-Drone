@@ -182,6 +182,7 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   if (altHoldMode) {
     setpoint->thrust = 0;
     setpoint->mode.z = modeVelocity;
+    setpoint->velocity.z = 0;
 
     setpoint->velocity.z = ((float) rawThrust - 32767.f) / 32767.f;
   } else {
