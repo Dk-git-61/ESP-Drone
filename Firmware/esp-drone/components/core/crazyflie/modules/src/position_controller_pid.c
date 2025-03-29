@@ -36,6 +36,7 @@
 #include "position_controller.h"
 #define DEBUG_MODULE "POSITION_CONTROLLER"
 #include "debug_cf.h"
+#include "stdio.h"
 
 float Kp = 3.0f;  // Proportional gain
 float Ki = 3.0f; // Integral gain
@@ -267,6 +268,7 @@ void positionControllerResetAllPID()
 float computeAltitudeHoldPID(float currentAltitude)
 {
     altitudeError = targetAltitude - currentAltitude;
+    printf("altitudeError = %f \n",altitudeError);
 
     // Proportional term
     float P = Kp * altitudeError;

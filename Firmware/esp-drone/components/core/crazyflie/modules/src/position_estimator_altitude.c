@@ -32,8 +32,12 @@
 #include "param.h"
 #include "num.h"
 #include "position_estimator.h"
+#include "zranger2.h" //dks
+
 
 #define G 9.81f;
+
+
 
 struct selfState_s {
   float estimatedZ; // The current Z estimate, has same offset as asl
@@ -72,6 +76,8 @@ static void positionEstimateInternal(state_t* estimate, const sensorData_t* sens
   float filteredZ;
   static float prev_estimatedZ = 0;
   static bool surfaceFollowingMode = false;
+
+  distanceDown = tofMeasurement->distance; //dks
 
   const uint32_t MAX_SAMPLE_AGE = M2T(50);
 

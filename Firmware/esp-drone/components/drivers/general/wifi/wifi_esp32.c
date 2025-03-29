@@ -23,6 +23,10 @@
 #include "system.h"
 #include "ms5611.h"
 #include "position_controller.h"
+#include "position_estimator.h"
+#include "zranger2.h"
+
+
 
 #define UDP_SERVER_PORT         2390
 #define UDP_SERVER_BUFSIZE      128
@@ -195,8 +199,8 @@ static void udp_server_rx_task(void *pvParameters)
                 if (!isAltHoldEnabled){
                     altHoldMode = true;
                     if(altHoldMode){ 
-                         printf("althold mode is actvated with TOF");
-                         targetAltitude = relaAlt;
+                         targetAltitude = distanceDown;
+                         printf("althold mode is actvated with TOF  target altitude is %f \n", targetAltitude);
                     }
                      isAltHoldEnabled = true;
                 }
@@ -235,6 +239,7 @@ static void udp_server_rx_task(void *pvParameters)
 #endif
         }
         printf("Tof data %f \n",distanceDown);
+        //printf("Tof data %f \n",tofMeasurement->distance);
     }
 }
 

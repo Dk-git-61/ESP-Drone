@@ -39,6 +39,8 @@
 #include "debug_cf.h"
 #include "position_controller.h"
 #include "ms5611.h"
+#include "zranger2.h"
+
 
 #define MIN_THRUST  1000
 #define MAX_THRUST  60000
@@ -187,7 +189,8 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   if (altHoldMode) {
     setpoint->thrust = 0;
     setpoint->mode.z = modeVelocity;
-    setpoint->velocity.z = computeAltitudeHoldPID(relaAlt);
+    setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+    printf("velocity.z is : %f \n",setpoint->velocity.z);
     /*
     printf("inside crtp_commander_rpyt \n");
     printf("Raw thrust is: %u \n",rawThrust);
