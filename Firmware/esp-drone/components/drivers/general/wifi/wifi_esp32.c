@@ -45,6 +45,8 @@ static uint8_t WIFI_CH = 1;
 #endif
 
 bool altHoldMode = false;
+bool takeOffMode = false;
+bool landMode = false;
 
 
 static char rx_buffer[UDP_SERVER_BUFSIZE];
@@ -170,30 +172,34 @@ static void udp_server_rx_task(void *pvParameters)
             //copy part of the UDP packet
             rx_buffer[len] = 0;// Null-terminate whatever we received and treat like a string...
              // Log the incoming packet
-            /*
+            
             printf("Received packet of size: %d bytes\n", len);
             printf("Received packet data: ");
             for (int i = 0; i < len; i++) {
                 printf(" %02X", rx_buffer[i]);
             }
-            printf("\n");*/
+            printf("\n");
             
-            if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x83) // added by dks to enable the button command
+            if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x83) // TAKE OFF MODE TO ENABLE
             {
-                if (!isOnground){
-                    ledSet(1,1);
-                    ms5611GetData(&pressure_m, &temperature_m, &asl_m);
-                    printf("Takeoff altitude is Pressure = %.4f mbar, Temperature = %.4f °C \n", pressure_m, temperature_m);
-                    setGroundReference(pressure_m,temperature_m,asl_m);
-                    isOnground = true;
-                    //printf("Ground Barometer Data: Pressure = %.4f mbar, Temperature = %.4f °C \n", pressure_m, temperature_m);
-
+                takeOffMode = true;
+                if(takeOffMode){ 
+                     targetAltitude = 1.0f; // dks set the target altitude to 1m
+                     printf("Takeoff mode is actvated with TOF  target altitude is %f \n", targetAltitude);
                 }
                
             }
-            else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x12 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x86) // added by dks to enable the button command
+            else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x12 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x86) // LAND MODE TO ENABLE
             {
-                ledSet(1,0);
+                if(takeOffMode){
+                    takeOffMode = false;
+                    landMode = true;
+                    if(landMode){ 
+                     targetAltitude = 0.02f; // dks set the target altitude to 0.02 ground
+                     printf("Land mode is actvated with TOF  target altitude is %f \n", targetAltitude);
+                    }
+                }
+                
             }
             if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x01 && rx_buffer[3] == 0x84){
                 if (!isAltHoldEnabled){
@@ -238,7 +244,7 @@ static void udp_server_rx_task(void *pvParameters)
             }
 #endif
         }
-        printf("Tof data %f \n",distanceDown);
+        //printf("Tof data %f \n",distanceDown);
         //printf("Tof data %f \n",tofMeasurement->distance);
     }
 }

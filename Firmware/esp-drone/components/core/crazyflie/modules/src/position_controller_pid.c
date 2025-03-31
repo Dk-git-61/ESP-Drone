@@ -38,8 +38,8 @@
 #include "debug_cf.h"
 #include "stdio.h"
 
-float Kp = 3.0f;  // Proportional gain
-float Ki = 3.0f; // Integral gain
+float Kp = 1.50f; // 3.0f;  // Proportional gain
+float Ki = 1.50f; //3.0f; // Integral gain
 float Kd = 0.15f;  // Derivative gain
 
 float altitudeError = 0;

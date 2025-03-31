@@ -185,7 +185,21 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   } else {
     setpoint->thrust = fminf(rawThrust, MAX_THRUST);
   }
-
+  if (takeOffMode) { // condition for taking off
+    setpoint->thrust = 0;
+    setpoint->mode.z = modeVelocity;
+    setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+    printf("velocity.z is : %f \n",setpoint->velocity.z);
+    
+  } 
+  if (landMode) { // condition for landing
+    setpoint->thrust = 0;
+    setpoint->mode.z = modeVelocity;
+    setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+    printf("velocity.z is : %f \n",setpoint->velocity.z);
+    
+  }
+  
   if (altHoldMode) {
     setpoint->thrust = 0;
     setpoint->mode.z = modeVelocity;
