@@ -154,9 +154,12 @@ static void udp_server_rx_task(void *pvParameters)
             //copy part of the UDP packet
             rx_buffer[len] = 0;// Null-terminate whatever we received and treat like a string...
 
-            for(int i = 0; i < len; i++) {
-                printf("rx_buffer[%d] = %02X \n", i, rx_buffer[i]);
+            printf("Received packet of size: %d bytes\n", len);
+            printf("Received packet data: ");
+            for (int i = 0; i < len; i++) {
+                printf(" %02X", rx_buffer[i]);
             }
+            printf("\n");
             if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x01 && rx_buffer[3] == 0x84){ // added by dks
                 
             }
