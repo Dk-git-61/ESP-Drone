@@ -41,12 +41,23 @@
 #include "ms5611.h"
 #include "zranger2.h"
 
+#include "motors.h"
+#include "pm_esplane.h"
+#include "esp_timer.h"
+#include "stabilizer.h"
+#include "sensors.h"
+#include "controller.h"
+#include "power_distribution.h"
+#include "motors.h"
+
+
 
 #define MIN_THRUST  1000
 #define MAX_THRUST  60000
 
 
-//float  relaAlt = 0.0f; 
+
+int  motorvalue = 50000; 
 
 /**
  * CRTP commander rpyt packet format
@@ -89,7 +100,6 @@ static bool thrustLocked = true;
 //bool altHoldMode = false;
 static bool posHoldMode = false;
 static bool posSetMode = false;
-
 /**
  * Set flight mode deponds on the present sensors
  *
@@ -108,14 +118,18 @@ void setCommandermode(FlightMode mode){
     altHoldMode = true;
     posHoldMode = true;
     posSetMode = false;
+
     registerRequiredEstimator(kalmanEstimator); 
     break;
   case POSSET_MODE:
     altHoldMode = false;
     posHoldMode = false;
     posSetMode = true;
+        
+
     registerRequiredEstimator(kalmanEstimator); 
     break;
+    
   default:
     altHoldMode = false;
     posHoldMode = false;
@@ -165,6 +179,20 @@ static void yawModeUpdate(setpoint_t *setpoint)
       break;
   }
 }
+void armMotor(){
+    printf("arm mode is enabled\n");
+    motorsSetRatio(MOTORS[0],motorvalue);
+    motorsSetRatio(MOTORS[1],motorvalue);
+    motorsSetRatio(MOTORS[2],motorvalue);
+    motorsSetRatio(MOTORS[3],motorvalue);
+}
+void disarmMotor(){
+    printf("arm mode is disabled\n");
+    motorsSetRatio(MOTORS[0],0);
+    motorsSetRatio(MOTORS[1],0);
+    motorsSetRatio(MOTORS[2], 0);
+    motorsSetRatio(MOTORS[3],0);
+}
 
 void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
 {
@@ -185,42 +213,65 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   } else {
     setpoint->thrust = fminf(rawThrust, MAX_THRUST);
   }
-  if (takeOffMode) { // condition for taking off
-    setpoint->thrust = 0;
-    setpoint->mode.z = modeVelocity;
-    setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
-    printf("velocity.z is : %f \n",setpoint->velocity.z);
-    
-  } 
-  if (landMode) { // condition for landing
-    setpoint->thrust = 0;
-    setpoint->mode.z = modeVelocity;
-    setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
-    printf("velocity.z is : %f \n",setpoint->velocity.z);
-    
-  }
   
+  // if(armMode)
+  // {
+  //   //armMotor()
+  //   //ispowerDistributionInit();
+     
+  //      // setpoint->thrust = 0;
+  // //    motorsBeep(0, true, 4000, 3276); // Motor 0 beeps at 4 kHz, 5% duty cycle
+  // //   vTaskDelay(pdMS_TO_TICKS(500));  // Wait 500 ms
+  // //   motorsBeep(0, false, 4000, 0);   // Stop beeping 
+  //  //   int ticks = 0;
+    
+  // //    while(ticks<5000){
+  // //     printf("after update tick is %d\n", ticks);
+  // //     ticks = xTaskGetTickCount();
+  // //     printf("before update tick is %d\n", ticks);
+  // //   setpoint->thrust = 10000;
+  // // }
+  
+  // }
+  // else if(armMode){
+  //   printf("arm mode is disabled\n");
+    
+  //   //setpoint->thrust = 0;
+  //   //  motorsBeep(0, true, 4000, 3276); // Motor 0 beeps at 4 kHz, 5% duty cycle
+  //   // vTaskDelay(pdMS_TO_TICKS(500));  // Wait 500 ms
+  //   // motorsBeep(0, false, 4000, 0);   // Stop beeping 
+  // }
+
   if (altHoldMode) {
-    //setpoint->thrust = 0;
+    armMotor();
+    // setpoint->thrust = 0;
     // setpoint->mode.z = modeVelocity;
     // setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
-    //printf("velocity.z is : %f \n",setpoint->velocity.z);
-    if(values->thrust != 0){
-      setpoint->mode.z = modeAbs;
-      setpoint->position.z = values->thrust/5000.0f;
-      setpoint->attitude.roll  = 0;
-      setpoint->attitude.pitch = 0;
-      setpoint->thrust = 0;
-    } else {
-      setpoint->mode.z = modeVelocity;
-      setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
-      printf("velocity.z is : %f \n",setpoint->velocity.z);
-    }
+    // printf("velocity.z is : %f \n",setpoint->velocity.z);
+    /*
+    printf("inside crtp_commander_rpyt \n");
+    printf("Raw thrust is: %u \n",rawThrust);
+    float h_thrust = 58500 + computeAltitudeHoldPID(relaAlt);
+    printf("h_thrust before limit is : %f \n",h_thrust);
+    h_thrust = fminf(h_thrust, MAX_THRUST);
+    h_thrust = fmaxf(h_thrust, MIN_THRUST);
+    printf("h_thrust after limit is is : %f \n",h_thrust);
+    setpoint->thrust = h_thrust;
+    setpoint->mode.z = modeDisable;
+    */
+
+    //setpoint->thrust = fminf(h_thrust, MAX_THRUST);
+    //setpoint->mode.z = modeVelocity;
+
+    //setpoint->velocity.z = 32767.f + computeAltitudeHoldPID(relaAlt);
 
     //setpoint->velocity.z = ((float) rawThrust - 32767.f) / 32767.f;
   } else {
-    setpoint->mode.z = modeDisable;
+    disarmMotor();
+    //setpoint->mode.z = modeDisable;
   }
+  if (!altHoldMode) {
+    disarmMotor();}
 
   // roll/pitch
   if (posHoldMode) {

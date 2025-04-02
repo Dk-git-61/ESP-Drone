@@ -40,6 +40,9 @@
 #define MOTORS_PWM_PERIOD         ((1<<MOTORS_PWM_BITS) - 1)
 #define MOTORS_TIM_BEEP_CLK_FREQ  4000000
 
+//dks motor
+const uint32_t MOTORS[4];
+
 // Compensate thrust depending on battery voltage so it will produce about the same
 // amount of thrust independent of the battery voltage. Based on thrust measurement.
 
@@ -131,6 +134,8 @@
 #define HALF 500
 #define FULL 1000
 #define STOP 0
+
+
 
 typedef enum {
     BRUSHED,

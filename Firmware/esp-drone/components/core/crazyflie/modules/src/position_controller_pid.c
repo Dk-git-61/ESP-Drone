@@ -283,6 +283,11 @@ float computeAltitudeHoldPID(float currentAltitude)
 
     // Compute thrust adjustment
     float velocityAdjustment = P + I + D;
+    if(velocityAdjustment > 1.0f) {
+        velocityAdjustment = 1.0f;
+    } else if (velocityAdjustment < -1.0f) {
+        velocityAdjustment = -1.0f;
+    }
     return velocityAdjustment;
 }
 

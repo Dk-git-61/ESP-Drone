@@ -12,7 +12,7 @@
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
 #include <lwip/netdb.h>
-
+#include "crtp_commander.h"
 #include "queuemonitor.h"
 #include "wifi_esp32.h"
 #include "stm32_legacy.h"
@@ -30,7 +30,8 @@
 
 #define UDP_SERVER_PORT         2390
 #define UDP_SERVER_BUFSIZE      128
-float distanceDown = 0.0f; //dks 
+float distanceDown = 0.0f; //dks
+int motor_rpm = 0;
 static struct sockaddr_in6 source_addr; // Large enough for both IPv4 or IPv6
 
 //#define WIFI_SSID      "Udp Server"
@@ -45,9 +46,7 @@ static uint8_t WIFI_CH = 1;
 #endif
 
 bool altHoldMode = false;
-bool takeOffMode = false;
-bool landMode = false;
-
+bool armMode = false;
 
 static char rx_buffer[UDP_SERVER_BUFSIZE];
 static char tx_buffer[UDP_SERVER_BUFSIZE];
@@ -69,8 +68,8 @@ static bool isAltHoldEnabled = false; // Track the state of AltHold dks
 //bool altHoldMode = false;
 
 static bool isOnground = false; // status of the drone dks
-
-
+static bool motorinit = false;
+static bool ismotorinit = false;
 static esp_err_t udp_server_create(void *arg);
 
 static uint8_t calculate_cksum(void *data, size_t len)
@@ -152,6 +151,7 @@ static esp_err_t udp_server_create(void *arg)
 }
 
 static void udp_server_rx_task(void *pvParameters)
+
 {
     uint8_t cksum = 0;
     socklen_t socklen = sizeof(source_addr);
@@ -173,46 +173,67 @@ static void udp_server_rx_task(void *pvParameters)
             rx_buffer[len] = 0;// Null-terminate whatever we received and treat like a string...
              // Log the incoming packet
             
-            printf("Received packet of size: %d bytes\n", len);
-            printf("Received packet data: ");
-            for (int i = 0; i < len; i++) {
-                printf(" %02X", rx_buffer[i]);
-            }
-            printf("\n");
+            // printf("Received packet of size: %d bytes\n", len);
+            // printf("Received packet data: ");
+            // for (int i = 0; i < len; i++) {
+            //     printf(" %02X", rx_buffer[i]);
+            // }
+            // printf("\n");
             
-            if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x83) // TAKE OFF MODE TO ENABLE
+            if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x83) // added by dks to enable the button command
             {
-                takeOffMode = true;
-                if(takeOffMode){ 
-                     targetAltitude = 1.0f; // dks set the target altitude to 1m
-                     printf("Takeoff mode is actvated with TOF  target altitude is %f \n", targetAltitude);
+                if (!isOnground){
+                    ledSet(1,1);    
+                   // ms5611GetData(&pressure_m, &temperature_m, &asl_m);
+                    //printf("Takeoff altitude is Pressure = %.4f mbar, Temperature = %.4f °C \n", pressure_m, temperature_m);
+                   // setGroundReference(pressure_m,temperature_m,asl_m);
+                    isOnground = true;
+                    //printf("Ground Barometer Data: Pressure = %.4f mbar, Temperature = %.4f °C \n", pressure_m, temperature_m);
+
                 }
                
             }
-            else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x12 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x86) // LAND MODE TO ENABLE
+            else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x12 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x86) // added by dks to enable the button command
             {
-                if(takeOffMode){
-                    takeOffMode = false;
-                    landMode = true;
-                    if(landMode){ 
-                     targetAltitude = 0.02f; // dks set the target altitude to 0.02 ground
-                     printf("Land mode is actvated with TOF  target altitude is %f \n", targetAltitude);
-                    }
-                }
+                ledSet(1,0);
+            }
+            if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x88)
+            {
+                printf("arm is activated");
+                //arm
+                 if(!ismotorinit){
+                  // ismotorinit = true;
+                armMode = true; 
+                ismotorinit = true;
+                printf("Drone is ARMED\n");
+
+                 }
+                 
+                  
+            }
+             else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x01 && rx_buffer[3] == 0x89)
+            {
+                printf("disarm is activated");
+                //disarm
+                 if (ismotorinit){
+                     armMode = false;
+                     printf("Drone is DISARMED\n");
+                     ismotorinit = false;
+                 }
                 
             }
             if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x01 && rx_buffer[3] == 0x84){
                 if (!isAltHoldEnabled){
                     altHoldMode = true;
                     if(altHoldMode){ 
-                         targetAltitude = distanceDown;
-                         printf("althold mode is actvated with TOF  target altitude is %f \n", targetAltitude);
+                        int targetAltitude = distanceDown;
+                         printf("althold mode is actvated with TOF  target altitude is %d \n", targetAltitude);
                     }
                      isAltHoldEnabled = true;
                 }
                  else {
                      ledSet(1,0);
-                     //altHoldMode = false;
+                     altHoldMode = false;
                      printf("althold mode is false \n");
                      isAltHoldEnabled = false;
                  }
