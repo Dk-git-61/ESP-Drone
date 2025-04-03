@@ -42,6 +42,10 @@ float Kp = 1.50f; // 3.0f;  // Proportional gain
 float Ki = 1.50f; //3.0f; // Integral gain
 float Kd = 0.15f;  // Derivative gain
 
+#define DT 0.01f          // 100Hz control loop
+#define MAX_INTEGRAL 0.3f  // Anti-windup limit
+#define MAX_VELOCITY 0.5f  // Safe vertical speed limit (m/s) dks
+
 float altitudeError = 0;
 float integralError = 0;
 float lastError = 0;
@@ -263,33 +267,66 @@ void positionControllerResetAllPID()
   pidReset(&this.pidVY.pid);
   pidReset(&this.pidVZ.pid);
 }
+float computeAltitudeHoldPID(float currentAltitude) {
+  // 1. Persistent variables (retain values between calls)
+  static float integralError = 0;
+  static float lastError = 0;
+  
+  // 2. Calculate error
+  float altitudeError = targetAltitude - currentAltitude;
+  
+  // 3. Proportional term
+  float P = Kp * altitudeError;
 
-// added by dks
-float computeAltitudeHoldPID(float currentAltitude)
-{
-    altitudeError = targetAltitude - currentAltitude;
-    printf("altitudeError = %f \n",altitudeError);
+  // 4. Integral term (with windup protection)
+  integralError += altitudeError * DT;
+  if (integralError > MAX_INTEGRAL) integralError = MAX_INTEGRAL;
+  if (integralError < -MAX_INTEGRAL) integralError = -MAX_INTEGRAL;
+  float I = Ki * integralError;
 
-    // Proportional term
-    float P = Kp * altitudeError;
+  // 5. Derivative term
+  float D = Kd * (altitudeError - lastError) / DT;
+  lastError = altitudeError;
 
-    // Integral term
-    integralError += altitudeError;
-    float I = Ki * (integralError * DT);
+  // 6. Combine and limit output
+  float velocityAdjustment = P + I + D;
+  
+  // Soft velocity limits
+  if (velocityAdjustment > MAX_VELOCITY) velocityAdjustment = MAX_VELOCITY;
+  if (velocityAdjustment < -MAX_VELOCITY) velocityAdjustment = -MAX_VELOCITY;
 
-    // Derivative term
-    float D = Kd *((altitudeError - lastError) / DT);
-    lastError = altitudeError;
-
-    // Compute thrust adjustment
-    float velocityAdjustment = P + I + D;
-    if (velocityAdjustment > 1.0f) {
-        velocityAdjustment = 1.0f;
-    } else if (velocityAdjustment < -1.0f) {
-        velocityAdjustment = -1.0f;
-    }
-    return velocityAdjustment;
+  // Debugging (optional)
+  printf("Error: %.2fm | P: %.2f | I: %.2f | D: %.2f | Out: %.2fm/s\n",
+         altitudeError, P, I, D, velocityAdjustment);
+  
+  return velocityAdjustment;
 }
+// added by dks
+// float computeAltitudeHoldPID(float currentAltitude)
+// {
+//     altitudeError = targetAltitude - currentAltitude;
+//     printf("altitudeError = %f \n",altitudeError);
+
+//     // Proportional term
+//     float P = Kp * altitudeError;
+
+//     // Integral term
+//     integralError += altitudeError;
+//     float I = Ki * (integralError * DT);
+
+//     // Derivative term
+//     float D = Kd *((altitudeError - lastError) / DT);
+//     lastError = altitudeError;
+
+//     // Compute thrust adjustment
+//     float velocityAdjustment = P + I + D;
+//     if (velocityAdjustment > 1.0f) {
+//         velocityAdjustment = 1.0f;
+//     } else if (velocityAdjustment < -1.0f) {
+//         velocityAdjustment = -1.0f;
+//     }
+//     return velocityAdjustment;
+// }
 
 LOG_GROUP_START(posCtl)
 

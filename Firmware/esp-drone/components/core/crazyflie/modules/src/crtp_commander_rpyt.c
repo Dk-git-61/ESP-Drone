@@ -44,6 +44,7 @@
 
 #define MIN_THRUST  1000
 #define MAX_THRUST  60000
+#define MAX_ALTITUDE 3.0f  // 3 meters max dks
 
 
 //float  relaAlt = 0.0f; 
@@ -187,12 +188,15 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   }
   if(altHoldMode){
     if(values->thrust != 0){
-
-    setpoint->mode.z = modeAbs;
-    setpoint->position.z = values->thrust/5000.0f;
+    //setpoint->mode.z = modeAbs;
+    setpoint->position.z = values->thrust/50000.0f;
+    targetAltitude = distanceDown + setpoint->position.z; // Update target altitude with pilot input
+    if(targetAltitude > MAX_ALTITUDE) 
+    {
+      targetAltitude = MAX_ALTITUDE;
+    } // limit the target altitude to 3m
     setpoint->attitude.roll  = 0;
     setpoint->attitude.pitch = 0;
-    targetAltitude = distanceDown; // update the target altitude with the TOF data
     }
     setpoint->thrust = 0;
     setpoint->mode.z = modeVelocity;
@@ -200,11 +204,25 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
     printf("velocity.z is : %f \n",setpoint->velocity.z);
 
   }
+
+  // if(altHoldMode values->thrust != 0){
+  //   setpoint->mode.z = modeAbs;
+  //   setpoint->position.z = values->thrust/5000.0f;
+  //   setpoint->attitude.roll  = 0;
+  //   setpoint->attitude.pitch = 0;
+  //   targetAltitude = distanceDown; // update the target altitude with the TOF data
+  // }else if(altHoldMode && values->thrust == 0){
+  //   setpoint->thrust = 0;
+  //   setpoint->mode.z = modeVelocity;
+  //   setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+  //   printf("velocity.z is : %f \n",setpoint->velocity.z);
+  
+  
   if(landMode && takeoff_completed){
-    setpoint->thrust = 0;
-    setpoint->mode.z = modeVelocity;
-    setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
-    printf("velocity.z is : %f \n",setpoint->velocity.z);
+  setpoint->thrust = 0;
+  setpoint->mode.z = modeVelocity;
+  setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+  printf("velocity.z is : %f \n",setpoint->velocity.z);
 
   }
   if(land_completed){ // disbale the altitude hold mode when the drone is on the ground

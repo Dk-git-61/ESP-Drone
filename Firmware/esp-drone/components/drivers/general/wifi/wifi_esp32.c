@@ -207,14 +207,11 @@ static void udp_server_rx_task(void *pvParameters)
             if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x01 && rx_buffer[3] == 0x84){
                 if (!isAltHoldEnabled){
                     altHoldMode = true;
-                    if(altHoldMode){ 
-                         targetAltitude = 0.50f; //distanceDown;
-                         printf("althold mode is actvated with TOF  target altitude is %f \n", targetAltitude);
-                    }
-                     isAltHoldEnabled = true;
+                    targetAltitude = 0.50f; //distanceDown;
+                    printf("althold mode is actvated with TOF  target altitude is %f \n", targetAltitude);
+                    isAltHoldEnabled = true;
                 }
                  else {
-                     ledSet(1,0);
                      //altHoldMode = false;
                      printf("althold mode is false \n");
                      isAltHoldEnabled = false;
