@@ -45,6 +45,9 @@ static uint8_t WIFI_CH = 1;
 #endif
 
 bool altHoldMode = false;
+bool takeoff_completed = false;
+bool land_completed = false;
+//bool landModde = false;
 bool takeOffMode = false;
 bool landMode = false;
 
@@ -173,39 +176,39 @@ static void udp_server_rx_task(void *pvParameters)
             rx_buffer[len] = 0;// Null-terminate whatever we received and treat like a string...
              // Log the incoming packet
             
-            printf("Received packet of size: %d bytes\n", len);
-            printf("Received packet data: ");
-            for (int i = 0; i < len; i++) {
-                printf(" %02X", rx_buffer[i]);
-            }
-            printf("\n");
+            // printf("Received packet of size: %d bytes\n", len);
+            // printf("Received packet data: ");
+            // for (int i = 0; i < len; i++) {
+            //     printf(" %02X", rx_buffer[i]);
+            // }
+            // printf("\n");
             
-            if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x83) // TAKE OFF MODE TO ENABLE
-            {
-                takeOffMode = true;
-                if(takeOffMode){ 
-                     targetAltitude = 1.0f; // dks set the target altitude to 1m
-                     printf("Takeoff mode is actvated with TOF  target altitude is %f \n", targetAltitude);
-                }
+            // if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x83) // TAKE OFF MODE TO ENABLE
+            // {
+            //     takeOffMode = true;
+            //     if(takeOffMode){ 
+            //          targetAltitude = 1.0f; // dks set the target altitude to 1m
+            //          printf("Takeoff mode is actvated with TOF  target altitude is %f \n", targetAltitude);
+            //     }
                
-            }
-            else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x12 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x86) // LAND MODE TO ENABLE
-            {
-                if(takeOffMode){
-                    takeOffMode = false;
-                    landMode = true;
-                    if(landMode){ 
-                     targetAltitude = 0.02f; // dks set the target altitude to 0.02 ground
-                     printf("Land mode is actvated with TOF  target altitude is %f \n", targetAltitude);
-                    }
-                }
+            // }
+            // else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x12 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x86) // LAND MODE TO ENABLE
+            // {
+            //     if(takeOffMode){
+            //         takeOffMode = false;
+            //         landMode = true;
+            //         if(landMode){ 
+            //          targetAltitude = 0.02f; // dks set the target altitude to 0.02 ground
+            //          printf("Land mode is actvated with TOF  target altitude is %f \n", targetAltitude);
+            //         }
+            //     }
                 
-            }
+            // }
             if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x01 && rx_buffer[3] == 0x84){
                 if (!isAltHoldEnabled){
                     altHoldMode = true;
                     if(altHoldMode){ 
-                         targetAltitude = distanceDown;
+                         targetAltitude = 0.50f; //distanceDown;
                          printf("althold mode is actvated with TOF  target altitude is %f \n", targetAltitude);
                     }
                      isAltHoldEnabled = true;
@@ -221,8 +224,17 @@ static void udp_server_rx_task(void *pvParameters)
             else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x85)
             {
                 if (isAltHoldEnabled){
-                    altHoldMode = false;
-                    printf("althold mode is deactivated \n");
+                    if(takeoff_completed){
+                        landMode = true;
+                        altHoldMode = false;
+                        targetAltitude = 0.05f;
+                        isAltHoldEnabled = false;
+                        printf("althold mode is deactvated with TOF  target altitude is %f \n", targetAltitude);
+
+                    }else{
+                        printf("Drone is on ground!!! %f \n", distanceDown);
+                    }
+                    
                 }
             }
             memcpy(inPacket.data, rx_buffer, len);
@@ -244,6 +256,15 @@ static void udp_server_rx_task(void *pvParameters)
             }
 #endif
         }
+        if(distanceDown > 0.10f && altHoldMode){
+            takeoff_completed = true;
+            printf("takeoff_completed %f \n",distanceDown);
+        }
+        if(takeoff_completed && landMode && distanceDown <= 0.05f){
+            land_completed = true;
+            printf("land_completed %f \n",distanceDown);
+        }
+        
         //printf("Tof data %f \n",distanceDown);
         //printf("Tof data %f \n",tofMeasurement->distance);
     }

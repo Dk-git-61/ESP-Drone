@@ -185,42 +185,69 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   } else {
     setpoint->thrust = fminf(rawThrust, MAX_THRUST);
   }
-  if (takeOffMode) { // condition for taking off
-    setpoint->thrust = 0;
-    setpoint->mode.z = modeVelocity;
-    setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
-    printf("velocity.z is : %f \n",setpoint->velocity.z);
-    
-  } 
-  if (landMode) { // condition for landing
-    setpoint->thrust = 0;
-    setpoint->mode.z = modeVelocity;
-    setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
-    printf("velocity.z is : %f \n",setpoint->velocity.z);
-    
-  }
-  
-  if (altHoldMode) {
-    //setpoint->thrust = 0;
-    // setpoint->mode.z = modeVelocity;
-    // setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
-    //printf("velocity.z is : %f \n",setpoint->velocity.z);
+  if(altHoldMode){
     if(values->thrust != 0){
-      setpoint->mode.z = modeAbs;
-      setpoint->position.z = values->thrust/5000.0f;
-      setpoint->attitude.roll  = 0;
-      setpoint->attitude.pitch = 0;
-      setpoint->thrust = 0;
-    } else {
-      setpoint->mode.z = modeVelocity;
-      setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
-      printf("velocity.z is : %f \n",setpoint->velocity.z);
-    }
 
-    //setpoint->velocity.z = ((float) rawThrust - 32767.f) / 32767.f;
-  } else {
-    setpoint->mode.z = modeDisable;
+    setpoint->mode.z = modeAbs;
+    setpoint->position.z = values->thrust/5000.0f;
+    setpoint->attitude.roll  = 0;
+    setpoint->attitude.pitch = 0;
+    targetAltitude = distanceDown; // update the target altitude with the TOF data
+    }
+    setpoint->thrust = 0;
+    setpoint->mode.z = modeVelocity;
+    setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+    printf("velocity.z is : %f \n",setpoint->velocity.z);
+
   }
+  if(landMode && takeoff_completed){
+    setpoint->thrust = 0;
+    setpoint->mode.z = modeVelocity;
+    setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+    printf("velocity.z is : %f \n",setpoint->velocity.z);
+
+  }
+  if(land_completed){ // disbale the altitude hold mode when the drone is on the ground
+    setpoint->mode.z = modeDisable;
+    landMode = false;
+    printf("mode velocity disbaled \n");
+  }
+  // if (takeOffMode) { // condition for taking off
+  //   setpoint->thrust = 0;
+  //   setpoint->mode.z = modeVelocity;
+  //   setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+  //   printf("velocity.z is : %f \n",setpoint->velocity.z);
+    
+  // } 
+  // if (landMode) { // condition for landing
+  //   setpoint->thrust = 0;
+  //   setpoint->mode.z = modeVelocity;
+  //   setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+  //   printf("velocity.z is : %f \n",setpoint->velocity.z);
+    
+  // }
+  
+  // if (altHoldMode && values->thrust != 0) {
+  //   setpoint->mode.z = modeAbs;
+  //   setpoint->position.z = values->thrust/5000.0f;
+  //   setpoint->attitude.roll  = 0;
+  //   setpoint->attitude.pitch = 0;
+  //   setpoint->thrust = 0;
+  //   }
+  // else if (altHoldMode && values->thrust == 0) {
+  //   setpoint->thrust = 0;
+  //   setpoint->mode.z = modeVelocity;
+  //   setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+  //   printf("velocity.z is : %f \n",setpoint->velocity.z);
+  //   }
+  // else if (altHoldMode && currentAltitude <= 0.05f) { // disbale the altitude hold mode when the drone is on the ground
+  //   setpoint->mode.z = modeDisable;
+  //   printf("mode velocity disbaled \n");
+  // }else{
+  //   setpoint->mode.z = modeDisable;
+  //   printf("mode velocity disbaled last condition \n");
+
+  // }
 
   // roll/pitch
   if (posHoldMode) {
