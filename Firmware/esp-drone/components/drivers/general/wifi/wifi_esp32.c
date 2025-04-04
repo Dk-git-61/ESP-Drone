@@ -154,12 +154,15 @@ static void udp_server_rx_task(void *pvParameters)
             //copy part of the UDP packet
             rx_buffer[len] = 0;// Null-terminate whatever we received and treat like a string...
 
-            printf("Received packet of size: %d bytes\n", len);
-            printf("Received packet data: ");
-            for (int i = 0; i < len; i++) {
-                printf(" %02X", rx_buffer[i]);
-            }
-            printf("\n");
+            // printf("Received packet of size: %d bytes\n", len);
+            // printf("Received packet data: ");
+            // for (int i = 0; i < len; i++) {
+            //     if(len <= 10) {
+            //         printf(" %02X", rx_buffer[i]);
+            //     }
+                
+            // }
+            //printf("\n");
             if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x01 && rx_buffer[3] == 0x84){ // added by dks
                 
             }
@@ -203,9 +206,9 @@ static void udp_server_tx_task(void *pvParameters)
             tx_buffer[outPacket.size + 1] = 0;
 
             // PRINT the data being sent  dks
-            //printf("Sending %d bytes: \n", outPacket.size + 1);
-            for (size_t i = 0; i < outPacket.size + 1; i++) {
-                //printf("tx_buffer[%d] = 0x%02X \n", i, tx_buffer[i]);
+            printf("Sending %d bytes: \n", outPacket.size + 1);
+            for (size_t i = 0; i < outPacket.size + 1; i++) {    
+                printf("tx_buffer[%d] = 0x%02X \n", i, tx_buffer[i]);
             }
 
             int err = sendto(sock, tx_buffer, outPacket.size + 1, 0, (struct sockaddr *)&source_addr, sizeof(source_addr));
@@ -230,7 +233,7 @@ static void sendBatteryVoltageTask(void)
     while (1)
     {
         voltage = pmGetBatteryVoltage(); // Retrieve battery voltage
-        //printf("Battery voltage: %f\n", voltage); // Print battery voltage to console
+        printf("Battery voltage: %f\n", voltage); // Print battery voltage to console
         memcpy(packet, &voltage, sizeof(float)); // Copy voltage into packet buffer
         wifiSendData(sizeof(packet), packet); // Send the packet over Wi-Fi
         vTaskDelay(pdMS_TO_TICKS(1000)); // Delay for 1 second
