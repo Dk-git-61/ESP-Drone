@@ -288,7 +288,9 @@ float computeAltitudeHoldPID(float currentAltitude)
     float velocityAdjustment = P + I + D;
     if(rawThrust < 0.0f && velocityAdjustment > 0.0f) {
         velocityAdjustment = -(velocityAdjustment);}
-    //printf("velocity is : %.2f",velocityAdjustment);
+    if(currentAltitude > MAX_ALTITUDE && velocityAdjustment > 0.0f) {
+      velocityAdjustment = -(velocityAdjustment);}
+      //printf("velocity is : %.2f",velocityAdjustment);
     if(velocityAdjustment > 1.0f) {
         velocityAdjustment = 1.0f;
     } else if (velocityAdjustment < -1.0f) {

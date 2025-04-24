@@ -1,4 +1,4 @@
-/* * Data converted from C:/Users/Dks/Downloads/arming-ackdone/arming-ackdone/Firmware/esp-drone/build/esp-idf/mbedtls/x509_crt_bundle
+/* * Data converted from C:/Users/Dks/nanoV1/arming/Firmware/esp-drone/build/esp-idf/mbedtls/x509_crt_bundle
  */
 .data
 .section .rodata.embedded

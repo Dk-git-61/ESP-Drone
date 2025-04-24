@@ -52,13 +52,13 @@
 #include "esp_timer.h"
 
 
-#define MAX_ALTITUDE 3.0f 
+
 #define MIN_THRUST  1000
 #define MAX_THRUST  60000
 #define zPosFactor  500000.0f // with 5l there is smoothness in ascend and descend
 
 
-
+float MAX_ALTITUDE = 2.0f;
 
 int  motorvalue = 50000; 
 
@@ -256,6 +256,7 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
         if(targetAltitude > MAX_ALTITUDE) 
         {
           targetAltitude = MAX_ALTITUDE;
+          printf("targetAltitude is limited to : %f\n",targetAltitude);
         } // limit the target altitude to 3m
         //printf("targetAltitude :%f \n",targetAltitude);
         setpoint->attitude.roll  = 0;

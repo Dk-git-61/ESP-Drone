@@ -5,15 +5,15 @@ cmake_minimum_required(VERSION 3.5)
 
 file(MAKE_DIRECTORY
   "C:/Users/Dks/esp/v4.4.4/esp-idf/components/bootloader/subproject"
-  "C:/Users/Dks/Downloads/arming-ackdone/arming-ackdone/Firmware/esp-drone/build/bootloader"
-  "C:/Users/Dks/Downloads/arming-ackdone/arming-ackdone/Firmware/esp-drone/build/bootloader-prefix"
-  "C:/Users/Dks/Downloads/arming-ackdone/arming-ackdone/Firmware/esp-drone/build/bootloader-prefix/tmp"
-  "C:/Users/Dks/Downloads/arming-ackdone/arming-ackdone/Firmware/esp-drone/build/bootloader-prefix/src/bootloader-stamp"
-  "C:/Users/Dks/Downloads/arming-ackdone/arming-ackdone/Firmware/esp-drone/build/bootloader-prefix/src"
-  "C:/Users/Dks/Downloads/arming-ackdone/arming-ackdone/Firmware/esp-drone/build/bootloader-prefix/src/bootloader-stamp"
+  "C:/Users/Dks/nanoV1/arming/Firmware/esp-drone/build/bootloader"
+  "C:/Users/Dks/nanoV1/arming/Firmware/esp-drone/build/bootloader-prefix"
+  "C:/Users/Dks/nanoV1/arming/Firmware/esp-drone/build/bootloader-prefix/tmp"
+  "C:/Users/Dks/nanoV1/arming/Firmware/esp-drone/build/bootloader-prefix/src/bootloader-stamp"
+  "C:/Users/Dks/nanoV1/arming/Firmware/esp-drone/build/bootloader-prefix/src"
+  "C:/Users/Dks/nanoV1/arming/Firmware/esp-drone/build/bootloader-prefix/src/bootloader-stamp"
 )
 
 set(configSubDirs )
 foreach(subDir IN LISTS configSubDirs)
-    file(MAKE_DIRECTORY "C:/Users/Dks/Downloads/arming-ackdone/arming-ackdone/Firmware/esp-drone/build/bootloader-prefix/src/bootloader-stamp/${subDir}")
+    file(MAKE_DIRECTORY "C:/Users/Dks/nanoV1/arming/Firmware/esp-drone/build/bootloader-prefix/src/bootloader-stamp/${subDir}")
 endforeach()

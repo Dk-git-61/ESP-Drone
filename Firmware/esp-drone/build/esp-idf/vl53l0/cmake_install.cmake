@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/Dks/Downloads/arming-ackdone/arming-ackdone/Firmware/esp-drone/components/drivers/i2c_devices/vl53l0
+# Install script for directory: C:/Users/Dks/nanoV1/arming/Firmware/esp-drone/components/drivers/i2c_devices/vl53l0
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
