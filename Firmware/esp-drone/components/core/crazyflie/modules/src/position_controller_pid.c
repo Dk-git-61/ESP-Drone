@@ -48,6 +48,8 @@ float lastError = 0;
 
 float targetAltitude = 0.0f;
 int32_t rawThrust = 0;
+//int8_t minVelcoity = -0.5f;
+float min_maxVelcoity = 0.5f;
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -291,10 +293,10 @@ float computeAltitudeHoldPID(float currentAltitude)
     if(currentAltitude > MAX_ALTITUDE && velocityAdjustment > 0.0f) {
       velocityAdjustment = -(velocityAdjustment);}
       //printf("velocity is : %.2f",velocityAdjustment);
-    if(velocityAdjustment > 1.0f) {
-        velocityAdjustment = 1.0f;
-    } else if (velocityAdjustment < -1.0f) {
-        velocityAdjustment = -1.0f;
+    if(velocityAdjustment > min_maxVelcoity) {
+        velocityAdjustment = min_maxVelcoity;
+    } else if (velocityAdjustment < min_maxVelcoity) {
+        velocityAdjustment = -(min_maxVelcoity);
     }
     printf("velocity is : %.2f \n",velocityAdjustment);
     return velocityAdjustment;

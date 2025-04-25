@@ -38,10 +38,10 @@ extern bool altHoldMode;
 extern bool armMode;
 
 extern bool disarm_clicked;
-extern bool takeOffMode;
+extern bool isTakeOff;
 extern bool landMode;
 
-extern bool takeOffMode;
+//extern bool takeOffMode;
 
 extern bool takeoff_completed;
 extern bool land_completed;

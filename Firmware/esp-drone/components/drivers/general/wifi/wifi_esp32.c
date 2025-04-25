@@ -50,15 +50,17 @@ static uint8_t WIFI_CH = 1;
 
 int counter = 0;
 bool armMode = false;
-bool altHoldMode = false;
+bool altHoldMode = true;
 bool disarm_clicked = false;
 bool isarmMode = false;
 bool takeoff_completed = false;
 bool land_completed = false;
 //bool landModde = false;
-bool takeOffMode = false;
+//bool takeOffMode = false;
 bool landMode = false;
 bool landCompleatedOnce = false;
+bool isTakeOff = false;
+
 
 static char rx_buffer[UDP_SERVER_BUFSIZE];
 static char tx_buffer[UDP_SERVER_BUFSIZE];
@@ -78,7 +80,6 @@ static bool isUDPConnected = false;
 
 static bool isAltHoldEnabled = false; // Track the state of AltHold dks
 static bool isArmed = false;
-static bool isLandOff = false;
 // bool altHoldMode = false;
 
 static bool isOnground = false; // status of the drone dks
@@ -242,31 +243,33 @@ static void udp_server_rx_task(void *pvParameters)
             if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x11 && rx_buffer[3] == 0x01){ // takeoff message
                 counter = 4;
                 printf("takeoff  mode is pressed on\n");
-                isLandOff = false;
-                if (!isLandOff)
+                //isTakeOff = false;
+                if (!isTakeOff && altHoldMode)
                 {
-                    altHoldMode = true;
+                    //altHoldMode = true;
                     targetAltitude = 0.50f;// 0.50f; //distanceDown;
-                    printf("althold mode is actvated with TOF  target altitude is %f \n", targetAltitude);
-                    isLandOff = true;
+                    printf("Takeoff mode is actvated with TOF  target altitude is %f \n", targetAltitude);
+                    isTakeOff = true;
+                    //land_completed = false;
+                    //landMode = false;
                 }
                  else {
                      //altHoldMode = false;
                      printf("island mode is false \n");
-                    isLandOff = false;
+                    isTakeOff = false;
                  }
 
             }
             else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x11 && rx_buffer[3] == 0x00) //LAND message
             {
                 printf("land mode is pressed \n");
-                if (isLandOff){
+                if (isTakeOff && altHoldMode){
                     if(takeoff_completed){
                         landMode = true;
-                        altHoldMode = false;
+                        //altHoldMode = false;
                         targetAltitude = 0.05f;
-                        isLandOff = false;
-                        //printf("althold mode is deactvated with TOF  target altitude is %f \n", targetAltitude);
+                        isTakeOff = false;
+                        printf("Land mode is actvated with TOF  target altitude is %f \n", targetAltitude);
 
                     }else{
                         printf("Drone is on ground!!! %f \n", distanceDown);
@@ -312,7 +315,7 @@ static void udp_server_rx_task(void *pvParameters)
             for (int i = 0; i < 10; i++) {
                 wifiSendData(sizeof(packet), packet);
             }
-            counter = 0;
+                counter = 0;
             }
             landCompleatedOnce = false;
                     

@@ -61,6 +61,7 @@
 float MAX_ALTITUDE = 2.0f;
 
 int  motorvalue = 50000; 
+static bool any_cmmands = false; // Flag to check if any commands are received
 
 /**
  * CRTP commander rpyt packet format
@@ -184,6 +185,14 @@ static void yawModeUpdate(setpoint_t *setpoint)
       break;
   }
 }
+void checkCmdRec(){
+  if(rawThrust == 0 && armMode == false && isTakeOff == false)
+  {
+    any_cmmands = false;
+  }else{
+    any_cmmands = true;
+  }
+}
 void armMotor(){
    int64_t start_time_us = esp_timer_get_time();  // Get start time in microseconds
     int elapsed_time_ms = 0;   // Convert to seconds
@@ -239,7 +248,7 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   // uint16_t rawThrust = values->thrust;
   //int32_t
   rawThrust = values->thrust;
-  printf("rawThrust: %d\n", rawThrust);
+  //printf("rawThrust: %d\n", rawThrust);
 
   if (thrustLocked || (rawThrust < MIN_THRUST)) {
     setpoint->thrust = 0;
@@ -276,23 +285,42 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
         setpoint->attitude.pitch = 0;
         //setpoint->mode.z = modeVelocity;
         setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
-        // float veloctyZ = 0.0f; //computeAltitudeHoldPID(distanceDown);
-        // //printf("veloctyZ is : %f \n",veloctyZ);
-        // setpoint->velocity.z = veloctyZ;
-        // printf("velocity.z is : %f \n",setpoint->velocity.z);
-        // if(veloctyZ > 0.0f){
-        //   setpoint->velocity.z = -veloctyZ;}
-        //   else{
-        //     setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);}
       }else{
         printf("raw thrust at centre\n");
       }
     
+    }else if(!isTakeOff && !takeoff_completed) // condition for takeoff is not pressed and the drone is not armed
+    {
+      //disarmMotor();
+      setpoint->mode.z = modeDisable;
+      printf("velocity modeDisabled cuz  takeoff command not received\n");
+    }else if(takeoff_completed && distanceDown <= 0.065f) // condition for takeoff is pressed and the drone is on the ground
+    {
+      disarmMotor();
+      setpoint->mode.z = modeDisable;
+      printf("Diarmed and velocity modeDisabled cuz  land completed\n");
     }
-    setpoint->thrust = 0;
-    setpoint->mode.z = modeVelocity;
-    setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+    else{
+      printf("velocity controller is activated\n");
+      setpoint->thrust = 0;
+      setpoint->mode.z = modeVelocity;
+      setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+
+    }
+    // setpoint->thrust = 0;
+    // setpoint->mode.z = modeVelocity;
+    // setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+    
+    // setpoint->thrust = 0;
+    // setpoint->mode.z = modeVelocity;
+    // setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
    // printf("velocity.z is in althold mode : %f \n",setpoint->velocity.z);
+
+  }else{
+    //disarmMotor();
+    setpoint->mode.z = modeDisable;
+    printf("mode z is disabled and althold mode is false\n");
+
 
   }
   if(landMode && takeoff_completed){
@@ -304,17 +332,23 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
 
   }
   if(land_completed){ // disbale the altitude hold mode when the drone is on the ground
-    printf("inside land completed\n");
+    //bool landComAck = false;
+    //if(!landComAck){
+      printf("inside land completed\n");
       uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x44};  // Hardcoded float 21.4 (little-endian)
 
-    for (int i = 0; i < 10; i++) {
-        wifiSendData(sizeof(packet), packet);
-    }
+      for (int i = 0; i < 10; i++) {
+          wifiSendData(sizeof(packet), packet);
+      }
 
-    printf("Packet bytes: ");
-    for (size_t i = 0; i < sizeof(packet); i++) {
-        printf("%02X ", packet[i]);
-    }
+      printf("Packet bytes: ");
+      for (size_t i = 0; i < sizeof(packet); i++) {
+          printf("%02X ", packet[i]);
+      }
+      //landComAck = true;
+
+    //}
+    
     setpoint->mode.z = modeDisable;
     land_completed = false;
     landMode = false;
