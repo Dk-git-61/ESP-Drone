@@ -295,7 +295,7 @@ float computeAltitudeHoldPID(float currentAltitude)
       //printf("velocity is : %.2f",velocityAdjustment);
     if(velocityAdjustment > min_maxVelcoity) {
         velocityAdjustment = min_maxVelcoity;
-    } else if (velocityAdjustment < min_maxVelcoity) {
+    } else if (velocityAdjustment < -(min_maxVelcoity)) {
         velocityAdjustment = -(min_maxVelcoity);
     }
     printf("velocity is : %.2f \n",velocityAdjustment);
