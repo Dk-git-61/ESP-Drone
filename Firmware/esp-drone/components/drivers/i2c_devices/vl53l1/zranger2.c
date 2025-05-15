@@ -40,7 +40,8 @@
 #include "cf_math.h"
 #define DEBUG_MODULE "ZR2"
 #include "debug_cf.h"
-
+#include "position_controller.h"
+bool tof_suc=false;
 // Measurement noise model
 static const float expPointA = 2.5f;
 static const float expStdA = 0.0025f; // STD at elevation expPointA [m]
@@ -87,11 +88,14 @@ void zRanger2Init(void)
   if (vl53l1xInit(&dev, I2C1_DEV))
   {
     DEBUG_PRINTI("Z-down sensor [OK]\n");
+    tof_suc=true;
   }
   else
   {
+    tof_suc=false;
     DEBUG_PRINTW("Z-down sensor [FAIL]\n");
     return;
+
   }
 
   xTaskCreate(zRanger2Task, ZRANGER2_TASK_NAME, ZRANGER2_TASK_STACKSIZE, NULL, ZRANGER2_TASK_PRI, NULL);
@@ -115,7 +119,11 @@ void zRanger2Task(void* arg)
   TickType_t lastWakeTime;
 
   systemWaitStart();
-
+   // tof fail step
+  if(!vl53l1xInit(&dev, I2C1_DEV)){
+    printf("Z-down sensor [FAIL]\n");
+    tof_suc=false;
+  }
   // Restart sensor
   VL53L1_StopMeasurement(&dev);
   VL53L1_SetDistanceMode(&dev, VL53L1_DISTANCEMODE_MEDIUM);
@@ -127,6 +135,15 @@ void zRanger2Task(void* arg)
 
   while (1) {
     vTaskDelayUntil(&lastWakeTime, M2T(25));
+    // Check if sensor is still responding using VL53L1_GetDeviceInfo
+    VL53L1_DeviceInfo_t deviceInfo;
+    VL53L1_Error status = VL53L1_GetDeviceInfo(&dev, &deviceInfo);
+    
+    if (status != VL53L1_ERROR_NONE) {
+      //printf("Z-down sensor disconnected or failed!\n");
+      tof_suc = false;
+      continue; // Keep trying (or handle differently)
+     }
 
     range_last = zRanger2GetMeasurementAndRestart(&dev);
     rangeSet(rangeDown, range_last / 1000.0f);
@@ -142,6 +159,7 @@ void zRanger2Task(void* arg)
     }
   }
 }
+
 
 PARAM_GROUP_START(deck)
 PARAM_ADD(PARAM_UINT8 | PARAM_RONLY, bcZRanger2, &isInit)

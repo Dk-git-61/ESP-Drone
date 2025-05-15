@@ -35,21 +35,30 @@ float asl;
 extern float targetAltitude;
 float currentAltitude;
 extern bool altHoldMode;
+extern bool less_voltage;
 extern bool armMode;
-
+extern bool isThrust;
+extern bool negative_thrust;
 extern bool disarm_clicked;
 extern bool isTakeOff;
 extern bool landMode;
-
+extern bool isArmsuccess;
+extern bool disarm;
+extern bool landed;
+extern bool isthrust;
 //extern bool takeOffMode;
-
+extern  bool isTake_thrust;
 extern bool takeoff_completed;
 extern bool land_completed;
 extern int32_t rawThrust;
 extern float MAX_ALTITUDE;
-
-
-
+extern float voltage;
+extern bool  isTake_button;
+extern bool ThrustPos;
+extern bool boostTakeoffvelocity; // using for takeoff
+extern bool boosThrvelocity; // using for takeoff manual thrust
+extern float takeOffHeight;
+extern bool tof_suc;
 float computeAltitudeHoldPID(float currentAltitude);
 // float computeAltitudesHoldPID(float currentAltitude);
 
@@ -63,4 +72,6 @@ void velocityController(float* thrust, attitude_t *attitude, setpoint_t *setpoin
                                                              const state_t *state);
 
 bool wifiSendData(uint32_t size, uint8_t *data);
+void disarmMotor();
+
 #endif /* POSITION_CONTROLLER_H_ */
